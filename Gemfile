@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gem 'middleman', '~> 4.2'
 gem 'middleman-blog'
 gem 'middleman-autoprefixer', '~> 2.7'
-gem 'webrick'
+gem 'webrick', :group => "development"
 
 gem 'redcarpet', '~> 3.3', '>= 3.3.3'
 
