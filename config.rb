@@ -2,7 +2,7 @@
 # https://middlemanapp.com/advanced/configuration/#configuring-extensions
 
 activate :autoprefixer do |prefix|
-  prefix.browsers = "last 2 versions"
+  prefix.browsers = 'last 2 versions'
 end
 
 # Layouts
@@ -15,7 +15,7 @@ end
 # page '/*.json', layout: false
 # page '/*.txt', layout: false
 
-page "/*", layout: 'default'
+page '/', layout: 'default'
 
 # With alternative layout
 # page '/path/to/file.html', layout: 'other_layout'
@@ -29,7 +29,8 @@ page "/*", layout: 'default'
 
 activate :blog do |blog|
   # This will add a prefix to all links, template references and source paths
-  blog.prefix = "posts"
+  blog.prefix = 'posts'
+  blog.layout = 'posts'
 
   # blog.permalink = "{year}/{month}/{day}/{title}.html"
   # Matcher for blog source files
@@ -78,3 +79,7 @@ configure :build do
   # Minify Javascript on build
   # activate :minify_javascript
 end
+
+set :markdown_engine, :redcarpet
+set :markdown, fenced_code_blocks: true, smartypants: true
+activate :syntax
