@@ -19,7 +19,7 @@
 }
 
 .highlight .c { color: rgb(106, 115, 125); } /* Comment */
-.highlight .err { color: #a61717; background-color: #e3d2d2; } /* Error */
+.highlight .err {  } /* Error */
 .highlight .k { color: rgb(215, 58, 73); } /* Keyword */
 .highlight .o { color: #000000; } /* Operator */
 .highlight .p { color: #000000; } /* Operator */
@@ -88,4 +88,10 @@
 
 .css .o,
 .css .o + .nt,
-.css .nt + .nt { color: #009999; }
+.css .nt + .nt,
+.scss .o,
+.scss .o + .nt,
+.scss .nt + .nt { color: #009999; }
+
+.css .nn, .scss .nn { color: rgb(111, 66, 193); }
+.css .nc, .scss .nc { color: rgb(111, 66, 193); }

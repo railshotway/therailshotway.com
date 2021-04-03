@@ -1,5 +1,8 @@
 ---
 title: 'How Basecamp Uses Hotwire, Part 1: HEY Loads Frames On-Click'
+author: jose_farias
+date: 2021-04-02 19:43 UTC
+past_urls:
 tags:
   - Hotwire
   - Basecamp
@@ -54,23 +57,6 @@ end
 ```
 
 ```html
-<div data-controller="gallery">
-  <button data-action="click->gallery#next">…</button>
-</div>
-```
-
-```js
-// controllers/gallery_controller.js
-import { Controller } from "stimulus"
-
-export default class extends Controller {
-  next(event) {
-    // …
-  }
-}
-```
-
-```html
 <details data-controller="popup-menu bridge--menu popup-picker"
          data-action="toggle->popup-picker#cancelOnClose
                      toggle->popup-menu#update
@@ -105,6 +91,169 @@ export default class extends Controller {
     </span>
   </turbo-frame>
 </details>
+```
+
+```scss
+@import 'variables';
+
+*,
+*:after,
+*:before {
+  box-sizing: border-box;
+}
+
+[tabindex='-1']:focus {
+  outline: none !important;
+}
+
+:root {
+  --spectrum-slider-handle-background-color: #fff;
+  --spectrum-slider-handle-background-color-down: #fff;
+  --spectrum-slider-handle-border-color: #{$text-color-light};
+  --spectrum-slider-handle-border-color-hover: #{$oc-blue-4};
+  --spectrum-slider-handle-border-color-down: #{$oc-blue-4};
+  --spectrum-label-text-line-height: 200%;
+}
+
+#commento {
+  .loading {
+    font-size: 1rem;
+    text-align: center;
+    color: $text-color-light;
+    font-family: $font-family-sans-serif;
+  }
+
+  &:has(> #commento-footer) .loading {
+    display: none;
+  }
+}
+
+.comments .commento-root {
+  font-family: $font-family-sans-serif;
+  margin-top: -1rem;
+
+  textarea,
+  .commento-card .commento-body p {
+    font-family: $font-family-serif;
+  }
+
+  .commento-anonymous-checkbox-container input[type='checkbox'] + label {
+    font-weight: normal;
+    text-transform: none;
+    font-size: 14px;
+
+    &::before {
+      margin-top: 4px;
+    }
+
+    &::after {
+      margin-top: 2px;
+    }
+  }
+
+  a {
+    color: $link-color;
+    transition: color 150ms ease;
+
+    &:hover {
+      color: $link-color-hover;
+    }
+  }
+
+  .commento-submit-button {
+    background-color: $link-color;
+    transition: background-color 150ms ease;
+    box-shadow: none;
+    margin-right: 0;
+
+    &:hover {
+      background-color: $link-color-hover;
+    }
+  }
+
+  .commento-markdown-button {
+    margin-left: 2px;
+  }
+
+  .commento-login .commento-login-text {
+    margin-right: 2px;
+    font-weight: normal;
+  }
+
+  textarea {
+    padding: 1rem;
+    &::placeholder {
+      font-size: 1rem;
+    }
+  }
+
+  .commento-card {
+    margin-top: 2rem;
+  }
+
+  .commento-footer {
+    display: none;
+  }
+}
+
+pre {
+  counter-reset: line-numbering;
+  border: solid 1px #d9d9d9;
+  border-radius: 0;
+  background: #fff;
+  padding: 0;
+  line-height: 23px;
+  margin-bottom: 30px;
+  white-space: pre;
+  overflow-x: auto;
+  word-break: inherit;
+  word-wrap: inherit;
+}
+
+pre a::before {
+  content: counter(line-numbering);
+  counter-increment: line-numbering;
+  padding-right: 1em; /* space after numbers */
+  width: 25px;
+  text-align: right;
+  opacity: 0.7;
+  display: inline-block;
+  color: #aaa;
+  background: #eee;
+  margin-right: 16px;
+  padding: 2px 10px;
+  font-size: 13px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+pre a:first-of-type::before {
+  padding-top: 10px;
+}
+
+pre a:last-of-type::before {
+  padding-bottom: 10px;
+}
+
+pre a:only-of-type::before {
+  padding: 10px;
+}
+
+.class-name {
+  padding: 1px;
+
+  span {
+    padding: 1px;
+  }
+
+  .nested-class {
+    padding: 1px;
+  }
+}
 ```
 
 ```javascript
