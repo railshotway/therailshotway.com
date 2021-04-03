@@ -1,7 +1,21 @@
+<% author = find_author(current_page.data.author) %>
+
 <% wrap_layout :default do %>
   <article>
-    <h1 class="post--title"><%= current_page.data.title %></h1>
+    <div class="post--header">
+      <%= image_tag author.avatar_path, class: 'author--avatar', width: '60', height: '60' %>
+
+      <div class="post--details">
+        <span><%= author.name %></span>
+        <span>&nbsp;-&nbsp;</span>
+        <span><%= current_page.data.date.to_date.to_formatted_s(:long) %></span>
+      </div>
+
+      <h1 class="post--title"><%= current_page.data.title %></h1>
+    </div>
+
     <br />
+
     <%= yield %>
   </article>
 <% end %>

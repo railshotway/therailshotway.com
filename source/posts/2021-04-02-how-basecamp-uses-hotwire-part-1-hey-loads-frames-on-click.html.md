@@ -2,7 +2,6 @@
 title: 'How Basecamp Uses Hotwire, Part 1: HEY Loads Frames On-Click'
 author: jose_farias
 date: 2021-04-02 19:43 UTC
-past_urls:
 tags:
   - Hotwire
   - Basecamp
