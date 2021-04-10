@@ -1,17 +1,12 @@
 ---
-
-title: A Hot Way History
+title: 'A Hot Way History'
 date: 2021-04-10 19:44 UTC
-tags: 
-
----
-
----
-
-title: A Hot Way History
-date: 2021-04-04 17:13 UTC
-tags: book, file-browser, chapter-1
-
+author: avi_flombaum
+tags:
+  - history
+  - ajax
+  - pjax
+  - philosophy
 ---
 
 # A Hot Way History

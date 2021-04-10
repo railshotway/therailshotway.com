@@ -1,11 +1,12 @@
 source 'https://rubygems.org'
 
 # Middleman Gems
-gem 'middleman'
+gem 'middleman', github: 'middleman/middleman'
 gem 'middleman-blog'
 gem 'middleman-syntax'
 gem 'middleman-autoprefixer', '~> 2.7'
 gem 'webrick', :group => "development"
+gem 'pry', :group => "development"
 
 gem 'redcarpet', '~> 3.3', '>= 3.3.3'
 
