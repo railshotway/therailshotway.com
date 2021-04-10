@@ -9,13 +9,11 @@ tags:
   - philosophy
 ---
 
-# A Hot Way History
-
-## AJAX and the Birth of Web Applications
-
 The early world wide web was composed of interlinking documents. The browser as a medium primarly delivered HTML documents that were concerned mostly with text. The web platform was an incredible way to share and consume information in the form of hypertext delivered over HTTP. Functionality on the other hand, things like games, communication applications like email, office software such as spreadsheets, still lived on the PC platform. If you wanted a program, you had to install it onto your PC.
 
 Web developers tried to break the browser free of the confines of documents and into the world of applications but it didn't work. Interactions were slow, and not just because we didn't have easy access to blazing broadband options, but because every time you wanted to do something in the browser, the entire browser would need to be reloaded with a new HTTP round trip. During this loading time, the interface was locked and you couldn't do anything. That means every link click, every form submission, had to happen synchronously, you could do one thing, but then you had to wait for the browser to make a request and the server to respond. 
+
+## AJAX and the Birth of Web Applications
 
 >Desktop applications have a richness and responsiveness that has seemed out of reach on the Web. The same simplicity that enabled the Web’s rapid proliferation also creates a gap between the experiences we can provide and the experiences users can get from a desktop application. 
 > Jesse James Garrett, February 18 2005
