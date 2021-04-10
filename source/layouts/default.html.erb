@@ -12,7 +12,8 @@
   <%= stylesheet_link_tag "assets/css/poole.css" %>
   <%= stylesheet_link_tag "assets/css/syntax.css" %>
   <%= stylesheet_link_tag "assets/css/lanyon.css" %>
-  
+  <%= stylesheet_link_tag "assets/css/styles.css" %>
+
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
 
   <link rel="apple-touch-icon-precomposed" sizes="144x144" href="">
@@ -35,12 +36,12 @@
     <nav class="sidebar-nav">
       <a class="sidebar-nav-item" href="#">Home</a>
 
-      
+
       <%#
       The code below dynamically generates a sidebar nav of pages with
-      `layout: page` in the front-matter. See readme for usage. 
+      `layout: page` in the front-matter. See readme for usage.
       %>
-      
+
       <a class="sidebar-nav-item" href="#">STOP IT</a>
       <span class="sidebar-nav-item">Currently Awesome</span>
     </nav>
@@ -51,8 +52,7 @@
       </p>
     </div>
   </div>
-  
-  
+
   <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
          content to avoid any CSS collisions with our real content. -->
   <!-- main wrapper -->
@@ -61,15 +61,15 @@
     <div class="masthead">
       <div class="container">
         <h3 class="masthead-title">
-          <a href="{{ site.baseurl }}/" title="Home">The Rails Hot Way</a>
+          <a href="/" title="Home">The Rails Hot Way</a>
           <small>🔥</small>
         </h3>
       </div>
     </div>
-    
+
     <!-- main body -->
     <div class="container content">
-      <%= yield %> 
+      <%= yield %>
     </div>
   </div>
 

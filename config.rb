@@ -2,7 +2,7 @@
 # https://middlemanapp.com/advanced/configuration/#configuring-extensions
 
 activate :autoprefixer do |prefix|
-  prefix.browsers = "last 2 versions"
+  prefix.browsers = 'last 2 versions'
 end
 
 # Layouts
@@ -15,7 +15,7 @@ end
 # page '/*.json', layout: false
 # page '/*.txt', layout: false
 
-page "/*", layout: 'default'
+page '/', layout: 'default'
 
 # With alternative layout
 # page '/path/to/file.html', layout: 'other_layout'
@@ -29,13 +29,13 @@ page "/*", layout: 'default'
 
 activate :blog do |blog|
   # This will add a prefix to all links, template references and source paths
-  blog.prefix = "posts"
+  blog.prefix = 'posts'
+  blog.layout = 'post'
 
   # blog.permalink = "{year}/{month}/{day}/{title}.html"
   # Matcher for blog source files
   # blog.sources = "{year}-{month}-{day}-{title}.html"
   # blog.taglink = "tags/{tag}.html"
-  # blog.layout = "post"
   # blog.summary_separator = /(READMORE)/
   # blog.summary_length = 250
   # blog.year_link = "{year}.html"
@@ -58,15 +58,26 @@ end
 #   activate :livereload
 # end
 
-# Helpers
-# Methods defined in the helpers block are available in templates
-# https://middlemanapp.com/basics/helper-methods/
+helpers do
+  def find_author(author_slug)
+    author_slug = author_slug.downcase
+    result = data.authors.select { |author| author.keys.first == author_slug }
 
-# helpers do
-#   def some_helper
-#     'Helping'
-#   end
-# end
+    raise ArgumentError unless result.any?
+
+    result.first
+  end
+
+  def articles_by_author(author)
+    sitemap.resources.select do |resource|
+      resource.data.author == author.name
+    end.sort_by { |resource| resource.data.date }
+  end
+
+  def author_path(author)
+    "/authors/#{author.keys.first}"
+  end
+end
 
 # Build-specific configuration
 # https://middlemanapp.com/advanced/configuration/#environment-specific-settings
@@ -78,3 +89,7 @@ configure :build do
   # Minify Javascript on build
   # activate :minify_javascript
 end
+
+set :markdown_engine, :redcarpet
+set :markdown, fenced_code_blocks: true, smartypants: true
+activate :syntax
