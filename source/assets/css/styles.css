@@ -1,24 +1,24 @@
-.author--avatar {
+.author__avatar {
   border-radius: 50%;
   margin-bottom: 0.25rem;
   object-fit: cover;
 }
 
-.post--details {
+.post__details {
   color: rgb(106, 115, 125);
   font-family: "PT Sans", Helvetica, Arial, sans-serif;
   font-size: 70%;
   text-transform: uppercase;
 }
 
-.post--header {
+.post__header {
   align-items: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.post--title {
+.post__title {
   font-weight: bolder;
   text-align: center;
 }

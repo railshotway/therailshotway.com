@@ -12,48 +12,6 @@ How Basecamp uses Hotwire: Load frames on click
 I reverse engineer Hey so you don't have to
 Dont even use rails
 
-```ruby
-class A < B; def self.create(object = User) object end end
-class Zebra; def inspect; "X#{2 + self.object_id}" end end
-
-module ABC::DEF
-  include Comparable
-
-  # @param test
-  # @return [String] nothing
-  def foo(test)
-    Thread.new do |blockvar|
-      ABC::DEF.reverse(:a_symbol, :'a symbol', :<=>, 'test' + test)
-    end.join
-  end
-
-  def [](index) self[index] end
-  def ==(other) other == self end
-end
-
-anIdentifier = an_identifier
-Constant = 1
-render action: :new
-
-def update_item!
-  return false if invalid?
-
-  ActiveRecord::Base.transaction do
-    case @superpower[:action].to_sym
-    when :add
-      @shopping_cart.items.create!(superpower_id: @superpower[:id])
-    when :remove
-      @shopping_cart.items.find_by!(superpower: @superpower[:id]).destroy!
-    end
-  end
-
-  true
-rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
-  aggregate_errors(e)
-
-  false
-end
-```
 
 ```html
 <details data-controller="popup-menu bridge--menu popup-picker"
