@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Middleman Gems
-gem 'middleman', github: 'middleman/middleman'
+gem 'middleman'
 gem 'middleman-blog'
 gem 'middleman-syntax'
 gem 'middleman-autoprefixer', '~> 2.7'
