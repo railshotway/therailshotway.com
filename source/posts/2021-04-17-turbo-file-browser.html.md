@@ -51,7 +51,7 @@ The second is that when you were clicking on a link that ended in a file extensi
 
 ## Maintaining Browser History on Frame Navigation
 
-The first issue is a philosophical one. Should navigating a frame be considered a navigational event that represents a change of state? I think be default, no. The point of turbo frames is that they represent interface components, the vast majority of which would not really represent a navigation state change of the application. However, I think it would be a worthwhile addition to the library to allow a frame to maintain history upon navigation. 
+The first issue is a philosophical one. Should navigating a frame be considered a navigational event that represents a change of state? I think by default, no. The point of turbo frames is that they represent interface components, the vast majority of which would not really represent a navigation state change of the application. However, I think it would be a worthwhile addition to the library to allow a frame to maintain history upon navigation. 
 
 In the file browser example, you can imagine this application having more interface elements (like the real GitHub UI does) and you might want to have those interface elements be independent frames. 
 
