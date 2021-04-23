@@ -30,7 +30,7 @@ By using the `XMLHttpRequest` object, developers could ferry data back and forth
 
 ## XML and JSON
 
-In order to use AJAX, developers would use Javascript to fire `XMLHttpRequest`s to the server on any data update. The server would respond with the data in structured format, generally XML or the newly introduced [JSON](https://www.json.org/json-en.html), "[discovered](https://www.whoishostingthis.com/resources/json-resource/#history)" by Doug Crockford. The tag-based XML format was considered bloated for HTTP and JSON afford a lightweight alternative. Since the data was going to be needed to be parsed and used to modify the HTML document through the Javascript DOM API anyway, the fact that JSON was natively compatible with Javascript reduced encoding and decoding issues. XML quickly lost favor among web developers building AJAX applications. The defacto web application pattern became:
+In order to use AJAX, developers would use Javascript to fire `XMLHttpRequest`s to the server on any data update. The server would respond with the data in structured format, generally XML or the newly introduced [JSON](https://www.json.org/json-en.html), "[discovered](https://www.whoishostingthis.com/resources/json-resource/#history)" by Doug Crockford. The tag-based XML format was considered bloated for HTTP and JSON afforded a lightweight alternative. Since the data needed to be parsed and used to modify the HTML document through the Javascript DOM API anyway, the fact that JSON was natively compatible with Javascript made building new DOM nodes easy. XML quickly lost favor among web developers building AJAX applications. The defacto web application pattern became:
 
 1. Client-side Javascript fires an XMLHttpRequest.
 2. The server responds with JSON.
