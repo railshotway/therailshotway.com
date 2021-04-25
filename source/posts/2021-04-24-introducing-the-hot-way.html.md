@@ -19,6 +19,11 @@ published: false
 ## The Value of Code
 
 - First principle - value of software.
+
+Choose the tool that's right for the job.
+
+The value in code is rooted in the value of software. Code is meaningful because the software we create with it is is meaningful. How we write code is important to the extent that it impacts our ability to create meaning and value with the applications we build. What are the values in code that most contribute to our code's ability to deliver meaning and value?
+
 - Speed
 - Stability
 - Maintainability
@@ -28,7 +33,6 @@ published: false
 - Interoperability
 - Simplicity
 
-Choose the tool that's right for the job.
 
 ## Interface - The Key to Software
 
