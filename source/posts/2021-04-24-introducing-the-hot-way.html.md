@@ -6,12 +6,14 @@ tags:
   - history
   - values
   - philosophy
-published: false
+published: true
 ---
 
-## Welcome to the World Wide Web
+In 1989 Sir Tim Berners-Lee began working on a set of technologies that came together to become what is today known as The Web and even the Internet. What the Web is at is essence is a global, decentralized, application architecture allowing any computer connected to the internet to serve an application in the form of HTML documents and client-side code over HTTP/S rendered by browsers, which today are powerful graphical and interpreter engines. 
 
-In 1989 Sir Tim Berners-Lee began working on a set of technologies that came together to become what is today known as The Web and even the Internet. What the Web is at is essence is a global, decentralized, application architecture allowing any computer connected to the internet to serve an application in the form of HTML documents and client-side code over HTTP/S rendered by browsers, which today are powerful graphical and interpreter engines. The Web thus represents the most ubiquitous and robust software platform in history. What started as simple HTML documents that could hyperlink to other HTML documents, thereby weaving the web together, now delivers the biggest networked applications in history. Trillions of dollars of value have been created by these applications and endless amounts of social good has been accomplished. The Web has done nothing short of change the world and humanity forever.
+The Web thus represents the most ubiquitous and robust software platform in history. What started as simple HTML documents that could hyperlink to other HTML documents, thereby weaving the web together, now delivers the biggest networked applications in history. Trillions of dollars of value have been created by these applications and endless amounts of social good has been accomplished. 
+
+The Web has done nothing short of change the world and humanity forever. The value of code is the ability to build web applications that make the world a better place.
   
 ## First Principle: Make Meaning
 
@@ -57,8 +59,30 @@ Creating with code carries with the burden of maintenance. Someone will have to 
 
 ### Extensibility
 
+As the needs of my software change, I want to choose tools that allow for easy additions of logic and data to create new features. I value tools that are built to be compatible with the future. These tools that seek to embrace the best of new ideas allow me to push my applications further. Features like version control, database migrations, clear patterns for where new features go, proper semantic versioning, easy upgrade paths, evolving standard libraries, and conventions over configurations, provide me with the extensibility for my software to continue growing without necessarily growing the complexity. 
 
+### Compatibility
 
-### Conclusion
+Languages and frameworks that provide compatibility with numerous development environments, platforms like the web, Android, iOS, and Desktop, and other language ecosystems allow for frictional adoptions, integrations, and collaborations. When it's easy to augment your application with support systems like Amazon Web Services, micro-services written in other languages, even ingest modules and components written in other languages directly into your application, you are never really constrained by your main language or framework choice. Closed languages and ecosystems that force you to use only what's available within itself will limit your ability to deliver as your needs change. 
 
-Code is fun - Ruby happy - Matz, restrained, frustrated, ergonomics 
+### Ubiquity
+
+Tools that are commonly available means finding support and infrastructure for your software will be easy. Languages that are standard on most systems, even when the OEM version isn't the best (I'm looking at you Ruby that ships with OSX), makes building your code on new systems somewhat less painless. The less you have to support your environment because it is a known and regular setup, preferably one that requires little customization for base performance and productivity, the better. While niche languages are interesting, I tend to favor ones that I know have proliferated far and wide in the systems and programming communities.
+
+### Interoperability 
+
+Silos of information and functionality limit your software's ability to provide value by locking its usage to its own environment and interfaces. But beyond choosing tools that allow your software to freely exchange and make us of functionality and data from other systems, interoperability should also be considered from the perspective of how easily you can entirely move a part of your software to another language and ecosystem. Tools that make major migrations and refactoring across languages and platforms natural should be preferred over those that will lock you in and require a full and everlasting commitment to their stacks. 
+
+### Simplicity
+
+> “The tools we use have a profound and devious influence on our thinking habits, and therefore on our thinking abilities.” Edsger Dijkstra
+
+Finally, I value code that is simple. I find that languages designed to value simplicity, that value readability, that encourage and model code that says what it does over how it does it, lead me to write simpler code. The tools we use will define how we think. In this sense, the values of the tool should mirror the values you have as a developer. Simplicity comes from pattern recognition, from seeing clear similarities between one implementation and another. Code that is proportionate to the problem is easy to understand. Tools that have the integrity needed to accomplish a job means that you can reliably use them thereby simplifying and limiting the choices you need to make. The beauty of code is when it is simple, clear, proportionate, and of high integrity. Favor simplicity as it will increase your speed and that will allow you to make meaningful software.
+
+## Happiness
+
+> “The goal of Ruby is to make programmers happy. I started out to make a programming language that would make me happy, and as a side effect it’s made many, many programmers happy.
+> 
+> I hope to see Ruby help every programmer in the world to be productive, and to enjoy programming, and to be happy. That is the primary purpose of Ruby language.” Yukihiro Matsumoto
+
+In the end, making meaningful software requires a certain amount of pleasure and happiness. It's rare to see programming languages and frameworks value the human condition. The ergonomics of the tools you use, how it feels to use them, how comfortable they are, is crucial. Without tools and languages that make you happy, programming will be an exercise in frustration. Pain from programming will bleed into your product and code and syphon away the meaning of your software, both in how meaningful it felt to make and the meaning it will have for people. The value of code is to feel meaningful while making meaning.
