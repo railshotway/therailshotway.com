@@ -9,7 +9,7 @@ tags:
 published: true
 ---
 
-In 1989 Sir Tim Berners-Lee began working on a set of technologies that came together to become what is today known as The Web and even the Internet. What the Web is at is essence is a global, decentralized, application architecture allowing any computer connected to the internet to serve an application in the form of HTML documents and client-side code over HTTP/S rendered by browsers, which today are powerful graphical and interpreter engines. 
+In 1989 Sir Tim Berners-Lee began working on a set of technologies that came together to become what is today known as The Web and even the Internet. At its essence, the Web is a global, decentralized, application architecture allowing any computer connected to the internet to serve an application in the form of HTML documents and client-side code over HTTP/S rendered by browsers, which today are powerful graphical and interpreter engines. 
 
 The Web thus represents the most ubiquitous and robust software platform in history. What started as simple HTML documents that could hyperlink to other HTML documents, thereby weaving the web together, now delivers the biggest networked applications in history. Trillions of dollars of value have been created by these applications and endless amounts of social good has been accomplished. 
 
