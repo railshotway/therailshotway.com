@@ -1,7 +1,8 @@
 ---
 title: 'Uncovering Hotwire Patterns Part 1: Loading Frames On-Demand'
+series: uncovering_hotwire_patterns
 author: jose_farias
-date: 2021-05-17 12:00 UTC
+date: 2021-05-29 12:00 UTC
 tags:
   - Hotwire
   - Basecamp
@@ -48,135 +49,53 @@ attribute and then use JavaScript to change its `src` programmatically.
 This is effective and quick. And we might want to go that route for involved
 implementations of this pattern. But <a href="https://hey.com" target="_blank">HEY</a>'s
 source code gives us a more elegant way of doing this when the frame is "hidden"
-behind other interactive elements, such as a menu.
+behind other interactive elements, such as a menu. Here's what that looks like:
 
----
-**Note:**
+<img class="img--centered" src="https://www.dropbox.com/s/73ifu7y88y8l3qe/HEY-menu-on-click-demo.gif?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" width="600" height="256" />
 
-_Basecamp was recently_ <a href="https://www.platformer.news/p/-what-really-happened-at-basecamp" target="_blank">_embroiled in controversy_</a>. _This post takes a look inside the hood of HEY, a product of Basecamp, in admiration of the commendable work done by current and former employees of the company. We'd like to keep these people at the center of this work. It is them we're admiring here._
+Notice how the `<turbo-frame>` was initially empty:
 
----
+<img class="img--centered" src="https://www.dropbox.com/s/6gonlv0ee587x7z/HEY-menu-empty-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" width="612" height="60" />
 
-I suggest using the approach below instead of changing the frame's `src` with
+And was populated only after clicking on the menu button:
+
+<img class="img--centered" src="https://www.dropbox.com/s/uv80ohcd0mu90ll/HEY-meny-populated-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" width="613" height="119" />
+
+For the next couple of entries in this series, we're going to be replicating the
+HEY menu in a fake email service called _**YO!**_ This is the end result:
+
+<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
+
+I suggest using the featured approach instead of changing the frame's `src` with
 pure JavaScript. Here's why:
 
 * It gives us a reusable Stimulus controller so we can replicate this behavior on other parts of our app using HTML alone.
 * It makes each element's purpose evident directly from the HTML.
 * It allows our site to still work without JavaScript. Albeit with a poorer user experience.
 
-Let's look at the pattern first, then walk through an implementation.
+---
+**Note:**
 
-## The Pattern
+_Basecamp was recently_ <a href="https://www.platformer.news/p/-what-really-happened-at-basecamp" target="_blank">_embroiled in controversy_</a>. _This post takes a look inside the hood of HEY, a product of Basecamp, in admiration of the commendable work done by current and former employees of the company. We'd like to keep these people and their work as the focus we're admiring here._
 
-<meta data-controller="callout" data-callout-text-value="data-controller=&quot;popup-menu&quot;">
-<meta data-controller="callout" data-callout-text-value="my-frame" data-callout-type-value="blue">
-<meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink">
-
-```html
-<!--
-  We're using a `<details>` element inside a `<nav>` here.
-  But this would work with any element that
-    1. Connects to the appropriate Stimulus controller
-    2. Calls #update when interacted with
-    3. Contains an `<a>` tag with `href` and `data-turbo-frame` attributes
-    4. Makes the `<a>` tag a "link" target for the Stimulus controller
-
-  Note that the `href` attribute should point to a page that contains a
-  `<turbo-frame>` with a matching `id` to the one on this page.
--->
-<nav>
-  <details data-controller="popup-menu" data-action="toggle->popup-menu#update">
-    <summary>
-      <span>Markup for our interface goes here</span>
-
-      <a href="/frame-content" data-turbo-frame="my-frame" data-popup-menu-target="link">
-        Link hidden by Stimulus controller
-      </a>
-    </summary>
-  </details>
-</nav>
-
-<!--
-  This frame id *has* to match the `data-turbo-frame` value in the `<a>` tag.
-
-  This frame would usually
-    1. Be hidden by default
-    2. Be shown when the Stimulus controller's element is interacted with
-    3. Contain a loading state to be displayed while the frame loads
-
-  Note that this frame can be located anywhere on the current page.
--->
-<turbo-frame id="my-frame">
-  Initial state.
-</turbo-frame>
-```
-
-<meta data-controller="callout" data-callout-text-value="&quot;data-turbo-frame&quot;" data-callout-type-value="blue">
-<meta data-controller="callout" data-callout-text-value="&quot;link&quot;" data-callout-type-value="pink">
-<meta data-controller="callout" data-callout-text-value="linkTarget" data-callout-type-value="pink">
-<meta data-controller="callout" data-callout-text-value="frameElement" data-callout-type-value="green">
-
-```js
-// js/controllers/popup_menu_controller.js
-
-import { Controller } from "stimulus"
-
-export default class extends Controller {
-  static targets = ["link"]
-
-  initialize() {
-    if (this.hasLinkTarget)
-      this.linkTarget.hidden = true
-  }
-
-  connect() {
-    this.update()
-  }
-
-  disconnect() {
-    this.close()
-  }
-
-  async update() {
-    // `.isActive` is pseudo-code. Make this into a guard-clause to avoid misfires.
-    if (!this.element.isActive)
-      return
-
-    if (this.hasLinkTarget)
-      this.linkTarget.click()
-
-    if (this.frameElement)
-      await this.frameElement.loaded
-  }
-
-  close() {
-    // `isActive` is pseudo-code. Disable the element in some way to avoid misfires.
-    this.element.isActive = false
-  }
-
-  // Private
-
-  get frameElement() {
-    const id = this.hasLinkTarget &&
-               this.linkTarget.getAttribute("data-turbo-frame")
-
-    return id && document.getElementById(id)
-  }
-}
-```
+---
 
 ## An Implementation
 
-We're going to be replicating the HEY menu in a fake email service called _**YO!**_.
-I emailed Basecamp about this, they're okay with you and I building a HEY
-clone for educational purposes.
+We're going to be implementing the functionality shown in the above GIF
+(just the loading frames on-demand part. Filters will be covered in a future post).
+Here's a refresher of what it's going to look like:
 
 <img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
 
+(I emailed Basecamp about this, by the way. they're okay with you and I building a HEY
+clone for educational purposes.)
+
 The code is available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>.
 
-Here's a working implementation of the above gif. Note that serving a `/navigation`
-route is necessary to actually populate the frame (see repo).
+Here's a working implementation of the above GIF. Note that serving a `/navigation`
+route is necessary to actually populate the frame (<a href="https://github.com/JoseFarias/yo-email/blob/0a10338a53341312cc469fed8ddfd91ec30fd86e/src/server/views/navigation.html" target="_blank">see repo</a>).
+An implementation breakdown is available after the code blocks.
 
 <meta data-controller="callout" data-callout-text-value="summary">
 <meta data-controller="callout" data-callout-text-value="my_navigation" data-callout-type-value="blue">
@@ -241,8 +160,9 @@ export default class extends Controller {
   static targets = ["arrow", "link"]
 
   initialize() {
-    if (this.hasLinkTarget)
+    if (this.hasLinkTarget) {
       this.linkTarget.hidden = true
+    }
   }
 
   connect() {
@@ -257,14 +177,17 @@ export default class extends Controller {
   async update() {
     this.arrowTarget.innerHTML = "expand_more"
 
-    if (!this.element.open)
+    if (!this.element.open) {
       return
+    }
 
-    if (this.hasLinkTarget)
+    if (this.hasLinkTarget) {
       this.linkTarget.click()
+    }
 
-    if (this.frameElement)
+    if (this.frameElement) {
       await this.frameElement.loaded
+    }
 
     this.summaryElement?.setAttribute("aria-expanded", this.element.open)
     this.arrowTarget.innerHTML = "expand_less"
@@ -324,6 +247,111 @@ Notice how using appropriate HTML semantics makes it easy to query and manipulat
 In this case, HEY uses a `<summary>` tag within a `<details>` element where other
 implementations might opt for nested `<div>`s (which would be semantically incorrect).
 We'll see other examples of this using `aria` attributes in a later post.
+
+## The Pattern
+
+Here's an attempt to abstract our implementation into a reusable pattern using HTML and StimulusJS.
+
+<meta data-controller="callout" data-callout-text-value="data-controller=&quot;popup-menu&quot;">
+<meta data-controller="callout" data-callout-text-value="my-frame" data-callout-type-value="blue">
+<meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink">
+
+```html
+<!--
+  We're using a `<details>` element inside a `<nav>` here.
+  But this would work with any element that
+    1. Connects to the appropriate Stimulus controller
+    2. Calls #update when interacted with
+    3. Contains an `<a>` tag with `href` and `data-turbo-frame` attributes
+    4. Makes the `<a>` tag a "link" target for the Stimulus controller
+
+  Note that the `href` attribute should point to a page that contains a
+  `<turbo-frame>` with a matching `id` to the one on this page.
+-->
+<nav>
+  <details data-controller="popup-menu" data-action="toggle->popup-menu#update">
+    <summary>
+      <span>Markup for our interface goes here</span>
+
+      <a href="/frame-content" data-turbo-frame="my-frame" data-popup-menu-target="link">
+        Link hidden by Stimulus controller
+      </a>
+    </summary>
+  </details>
+</nav>
+
+<!--
+  This frame id *has* to match the `data-turbo-frame` value in the `<a>` tag.
+
+  This frame would usually
+    1. Be hidden by default
+    2. Be shown when the Stimulus controller's element is interacted with
+    3. Contain a loading state to be displayed while the frame loads
+
+  Note that this frame can be located anywhere on the current page.
+-->
+<turbo-frame id="my-frame">
+  Initial state.
+</turbo-frame>
+```
+
+<meta data-controller="callout" data-callout-text-value="&quot;data-turbo-frame&quot;" data-callout-type-value="blue">
+<meta data-controller="callout" data-callout-text-value="&quot;link&quot;" data-callout-type-value="pink">
+<meta data-controller="callout" data-callout-text-value="linkTarget" data-callout-type-value="pink">
+<meta data-controller="callout" data-callout-text-value="frameElement" data-callout-type-value="green">
+
+```js
+// js/controllers/popup_menu_controller.js
+
+import { Controller } from "stimulus"
+
+export default class extends Controller {
+  static targets = ["link"]
+
+  initialize() {
+    if (this.hasLinkTarget) {
+      this.linkTarget.hidden = true
+    }
+  }
+
+  connect() {
+    this.update()
+  }
+
+  disconnect() {
+    this.close()
+  }
+
+  async update() {
+    // `.isActive` is pseudo-code. Make this into a guard-clause to avoid misfires.
+    if (!this.element.isActive) {
+      return
+    }
+
+    if (this.hasLinkTarget) {
+      this.linkTarget.click()
+    }
+
+    if (this.frameElement) {
+      await this.frameElement.loaded
+    }
+  }
+
+  close() {
+    // `isActive` is pseudo-code. Disable the element in some way to avoid misfires.
+    this.element.isActive = false
+  }
+
+  // Private
+
+  get frameElement() {
+    const id = this.hasLinkTarget &&
+               this.linkTarget.getAttribute("data-turbo-frame")
+
+    return id && document.getElementById(id)
+  }
+}
+```
 
 ## Wrap up
 We don't always want our frames to load immediately. And this Markup + Stimulus combo

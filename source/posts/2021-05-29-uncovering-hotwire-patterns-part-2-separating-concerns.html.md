@@ -1,7 +1,8 @@
 ---
 title: 'Uncovering Hotwire Patterns Part 2: Separating Concerns'
+series: uncovering_hotwire_patterns
 author: jose_farias
-date: 2021-05-24 12:00 UTC
+date: 2021-05-29 12:30 UTC
 tags:
   - Hotwire
   - Basecamp
@@ -14,8 +15,8 @@ _This is a series about uncovering patterns for Hotwire by taking a look at how 
 
 ---
 
-<a href="/posts/2021/05/17/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">Last time</a>,
-we talked about one of the benefits of separating concerns by leveraging turbo frames.
+<a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">Last time</a>,
+we talked about one of the benefits of separating concerns by leveraging Turbo Frames.
 Today, I'm writing about the actual separation of concerns.
 
 This is going to be a post about a thought pattern, rather than a code pattern.
@@ -37,45 +38,15 @@ But we can take things further using Hotwire.
 Today's pattern takes advantage of things simply falling into place when web standards
 are followed. In this case, following REST guidelines makes it easy to reason
 about our application. Which, in turn, makes it easy to connect and maintain
-multiple components (like the `Imbox` and the `HEY` menu).
+multiple components.
 
 
 ---
 **Note:**
 
-_Basecamp was recently_ <a href="https://www.platformer.news/p/-what-really-happened-at-basecamp" target="_blank">_embroiled in controversy_</a>. _This post takes a look inside the hood of HEY, a product of Basecamp, in admiration of the commendable work done by current and former employees of the company. We'd like to keep these people at the center of this work. It is them we're admiring here._
+_Basecamp was recently_ <a href="https://www.platformer.news/p/-what-really-happened-at-basecamp" target="_blank">_embroiled in controversy_</a>. _This post takes a look inside the hood of HEY, a product of Basecamp, in admiration of the commendable work done by current and former employees of the company. We'd like to keep these people and their work as the focus we're admiring here._
 
 ---
-
-## The Pattern
-Again, this is more of a thought pattern. An invitation of sorts to think about
-our application as a combination of REST resources. And we're not only talking
-about our database-connected models. We're talking about our UI components as well.
-
-By doing this, we're able to keep the surface area of our domain components small.
-
-In <a href="/posts/2021/05/17/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">last post</a>'s example,
-we replicated the HEY menu in a fake email service called _**YO!**_
-(code available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>).
-Here's that that looked like:
-
-<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
-
-This menu contains a search form that can be kind of complex. It has its own rules
-of engagement. It fetches records and displays them in an entirely different frame
-(this is a pattern we'll talk about in a future post). It's _its own thing_. And,
-as such, it shouldn't be bundled with the rest of the navigation. Not even within partials.
-
-Components like this one should have their own place to live.
-They deserve their own controller. Or at least their own action within an existing controller.
-With Hotwire, we can give them that place to live and load them asynchronously
-<a href="/posts/2021/05/17/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank">as needed</a>.
-
-_Contextual side-note: This is not a new concept, the Rails community has been doing this for a while. But Hotwire makes it super easy to implement._
-
-One last thing to remember is the importance of flexibility. It doesn't always make
-sense to force a component into a REST resource. We must make sensible choices that
-result in our application being easier to reason about. Let's not follow guidelines blindly.
 
 ## An Implementation
 In <a href="https://hey.com" target="_blank">HEY</a>, notice how menus and trays
@@ -111,12 +82,42 @@ end
 That is to say, `Me` is something that can be instantiated and shown to users.
 And what does a `Me` look like? Well, it looks like a `Me` _menu_, of course!
 
+## The Pattern
+Again, this is more of a thought pattern. An invitation of sorts to think about
+our application as a combination of REST resources. And we're not only talking
+about our database-connected models. We're talking about our UI components as well.
+
+By doing this, we're able to keep the surface area of our domain components small.
+
+In <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">last post</a>'s example,
+we replicated the HEY menu in a fake email service called _**YO!**_
+(code available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>).
+Here's that that looked like:
+
+<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
+
+This menu contains a search form that can be kind of complex. It has its own rules
+of engagement. It fetches records and displays them in an entirely different frame
+(this is a pattern we'll talk about in a future post). It's _its own thing_. And,
+as such, it shouldn't be bundled with the rest of the navigation. Not even within partials.
+
+Components like this one should have their own place to live.
+They deserve their own controller. Or at least their own action within an existing controller.
+With Hotwire, we can give them that place to live and load them asynchronously
+<a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank">as needed</a>.
+
+_Contextual side-note: This is not a new concept, the Rails community has been doing this for a while. But Hotwire makes it super easy to implement._
+
+One last thing to remember is the importance of flexibility. It doesn't always make
+sense to force a component into a REST resource. We must make sensible choices that
+result in our application being easier to reason about. Let's not follow guidelines blindly.
+
 ## Wrap Up
 
 Thinking of our application (UI included) as a combination of REST resources
 makes it easy to reason about, easy to navigate, and easy to maintain.
 
-Hotwire makes it super easy to connect different parts of our application when
+Hotwire makes it a breeze to connect different parts of our application when
 architecting our domain in this way.
 
 I'm going to keep extracting patterns from apps like HEY in upcoming posts.
