@@ -4,6 +4,11 @@
   object-fit: cover;
 }
 
+.img--centered {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .post__details {
   color: rgb(106, 115, 125);
   font-family: "PT Sans", Helvetica, Arial, sans-serif;

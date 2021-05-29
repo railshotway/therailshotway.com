@@ -1,0 +1,9 @@
+- uncovering_hotwire_patterns:
+  display_name: Uncovering Hotwire Patterns
+  entries:
+    - name: 'Part 1: Loading Frames On-Demand'
+      uri: '/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html'
+    - name: 'Part 2: Separating Concerns'
+      uri: '/posts/2021/05/29/uncovering-hotwire-patterns-part-2-separating-concerns.html'
+    # - name: 'Part 3: Controlling Frames From Afar (Turbo Frames + Forms = ❤️)'
+    #   uri: '/posts/2021/05/31/uncovering-hotwire-patterns-part-3-controlling-frames-from-afar.html'

@@ -77,6 +77,12 @@ helpers do
   def author_path(author)
     "/authors/#{author.keys.first}"
   end
+
+  def series_entries(series_slug)
+    result = data.series.select { |series| series.keys.first == series_slug }
+
+    result.first.try(:[], 'entries') || []
+  end
 end
 
 # Build-specific configuration
