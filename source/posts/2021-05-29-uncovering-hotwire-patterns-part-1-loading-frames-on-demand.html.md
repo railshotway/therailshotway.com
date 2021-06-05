@@ -88,10 +88,8 @@ Here's a refresher of what it's going to look like:
 
 <img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
 
-(I emailed Basecamp about this, by the way. they're okay with you and I building a HEY
-clone for educational purposes.)
-
-The code is available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>.
+I emailed Basecamp about this, by the way. they're okay with you and I building a HEY
+clone for educational purposes.
 
 Here's a working implementation of the above GIF. Note that serving a `/navigation`
 route is necessary to actually populate the frame (<a href="https://github.com/JoseFarias/yo-email/blob/0a10338a53341312cc469fed8ddfd91ec30fd86e/src/server/views/navigation.html" target="_blank">see repo</a>).
@@ -107,14 +105,13 @@ An implementation breakdown is available after the code blocks.
 <nav class="container"
      aria-label="Main">
   <div class="row">
-    <div class="col-12 d-flex justify-content-center">
-      <details class="popup-menu text--gradient-hey position-relative mt-1"
-               data-controller="popup-menu"
+    <div class="col-12">
+      <details data-controller="popup-menu"
                data-action="toggle->popup-menu#update">
         <summary aria-label="Go to">
-          <span class="emoji">&#9996;</span>
-          <span class="logo-text">YO!</span>
-          <span class="arrow-down material-icons-round flipped"
+          <span>&#9996;</span> <!-- Wave emoji -->
+          <span>YO!</span>
+          <span class="material-icons-round"
                 data-popup-menu-target="arrow">
                 expand_more
           </span>
@@ -128,13 +125,11 @@ An implementation breakdown is available after the code blocks.
 
         <turbo-frame id="my_navigation"
                      target="_top"
-                     role="menu"
-                     class="popup-menu position-absolute menu
-                            start-50 overflow-scroll">
+                     role="menu">
           <span class="u-for-screen-reader" role="menuitem" aria-disabled="true">Loading</span>
 
           <!-- Loader from https://loading.io/css/ -->
-          <div class="loader d-flex justify-content-center align-items-center">
+          <div class="loader">
             <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
           </div>
         </turbo-frame>
@@ -212,15 +207,9 @@ export default class extends Controller {
 }
 ```
 
-This is literally the code from the gif above. The following bits are not
-functional in the scope of this example, so they can be glossed over.
-
-* `<span>` elements with a `material-icons-round` class. They are <a href="https://fonts.google.com/icons" target="_blank">Material Icons</a>.
-* `<div>` elements with <a href="https://getbootstrap.com/" target="_blank">Bootstrap</a> classes only (like `row` and `col-*`).
-* `aria` attributes. I kept them because, although they're not functional in this example, they are important for a11y and we shouldn't omit them.
-* Elements with the `u-for-screen-reader` class. These are kept for the same reason as `aria` attributes.
-
-I hope keeping the above bits makes it easy to relate the code to the visual example in the gif.
+This is a simplified version of the code from the gif above. I mostly omitted
+CSS classes and other distracting attributes to make things cleaner. If you're looking for a 100% functioning
+implementation check out the <a href="https://github.com/JoseFarias/yo-email" target="_blank">GitHub repo</a>.
 
 ## Implementation Breakdown
 
