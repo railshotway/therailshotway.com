@@ -83,6 +83,10 @@ helpers do
 
     result.first.try(:[], 'entries') || []
   end
+
+  def strip_em(html)
+    html.gsub("<em>", "").gsub("</em>", "")
+  end
 end
 
 # Build-specific configuration
