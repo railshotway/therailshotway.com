@@ -11,7 +11,7 @@ tags:
 
 _Hotwire is a new technology built on top of mature web principles. Its "oldness" makes it reliable. And its "newness" makes it applicable to modern demands._
 
-_This is a series about uncovering patterns for Hotwire by taking a look at how large companies are using it in production._
+_This is a series about uncovering patterns for Hotwire by taking a look at how successful companies are using it in production._
 
 ---
 
@@ -26,33 +26,33 @@ the subject matter.
 ## Context
 
 HTML can get very messy, very quick. That's one of the reasons abstractions such as
-<a href="https://haml.info/" target="_blank">Haml</a> and
+<a href="https://haml.info/" target="_blank">Haml</a>,
+<a href="https://pugjs.org/" target="_blank">Pug</a>, and
 <a href="http://slim-lang.com/" target="_blank">Slim</a> emerge.
-
 But HTML can actually be beautiful and easy to read if we keep our
 markup **semantic** and **short**.
 
 Rails allows for that to some extent through modest use of layouts and partials.
-But we can take things further using Hotwire.
+However, that approach can result in mixing in too many concerns.
+We can take things further by leveraging Hotwire.
+
+We usually picture database-backed models when we talk about REST resources.
+But let's consider the posibility of our UI components also being resources.
+This would allow us to separate complex UI elements into their own concerns within
+our code and use Turbo Frames to load each element where appropriate. This is preferable
+to rendering complex markup inline for a single HTTP request (typically through the use of partials),
+as it keeps our code cleaner.
 
 Today's pattern takes advantage of things simply falling into place when web standards
 are followed. In this case, following REST guidelines makes it easy to reason
 about our application. Which, in turn, makes it easy to connect and maintain
 multiple components.
 
-
----
-**Note:**
-
-_Basecamp was recently_ <a href="https://www.platformer.news/p/-what-really-happened-at-basecamp" target="_blank">_embroiled in controversy_</a>. _This post takes a look inside the hood of HEY, a product of Basecamp, in admiration of the commendable work done by current and former employees of the company. We'd like to keep these people and their work as the focus we're admiring here._
-
----
-
 ## An Implementation
-In <a href="https://hey.com" target="_blank">HEY</a>, notice how menus and trays
-have their own URLs. This is what it looks like if we navigate to, say, `https://app.hey.com/my/navigation`:
+In <a href="https://hey.com" target="_blank">HEY</a>, menus and trays have their own
+RESTful URLs. This is what it looks like if we navigate to, say, `https://app.hey.com/my/navigation`:
 
-<img class="img--centered" src="https://www.dropbox.com/s/0ehjy7h3q3n7jm0/my-navigation.png?raw=1" alt="Image showing the HEY menu navigation by itself, rendered across the full-width of the screen" width="623" height="470" />
+<img class="img--centered" src="https://www.dropbox.com/s/0ehjy7h3q3n7jm0/my-navigation.png?raw=1" alt="Image showing the HEY menu navigation by itself, rendered across the full-width of the screen" />
 
 We usually only see the HEY menu confined to a small box positioned just below the navbar.
 But we can absolutely navigate to this full-width version of the menu, because it's a resource.
@@ -94,7 +94,7 @@ we replicated the HEY menu in a fake email service called _**YO!**_
 (code available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>).
 Here's that that looked like:
 
-<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
+<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" />
 
 This menu contains a search form that can be kind of complex. It has its own rules
 of engagement. It fetches records and displays them in an entirely different frame
@@ -106,7 +106,7 @@ They deserve their own controller. Or at least their own action within an existi
 With Hotwire, we can give them that place to live and load them asynchronously
 <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank">as needed</a>.
 
-_Contextual side-note: This is not a new concept, the Rails community has been doing this for a while. But Hotwire makes it super easy to implement._
+_Contextual side-note: This is not a new concept. The Rails community has been doing this for a while. But Hotwire makes it super easy to implement._
 
 One last thing to remember is the importance of flexibility. It doesn't always make
 sense to force a component into a REST resource. We must make sensible choices that

@@ -11,7 +11,7 @@ tags:
 
 _Hotwire is a new technology built on top of mature web principles. Its "oldness" makes it reliable. And its "newness" makes it applicable to modern demands._
 
-_This is a series about uncovering patterns for Hotwire by taking a look at how large companies are using it in production._
+_This is a series about uncovering patterns for Hotwire by taking a look at how successful companies are using it in production._
 
 ---
 
@@ -31,7 +31,7 @@ others in future posts.
 
 From the <a href="https://turbo.hotwire.dev/handbook/frames#lazily-loading-frames" target="_blank">Hotwire docs</a>,
 we know introducing `<turbo-frame>` elements with `src` attributes is enough
-to lazy-load the frame's contents when the site is visited.
+to lazy-load the frame's contents when the page is visited.
 
 But what if we don't want to load the frame's contents immediately? A couple reasons that might be:
 
@@ -51,20 +51,20 @@ implementations of this pattern. But <a href="https://hey.com" target="_blank">H
 source code gives us a more elegant way of doing this when the frame is "hidden"
 behind other interactive elements, such as a menu. Here's what that looks like:
 
-<img class="img--centered" src="https://www.dropbox.com/s/73ifu7y88y8l3qe/HEY-menu-on-click-demo.gif?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" width="600" height="256" />
+<img class="img--centered" src="https://www.dropbox.com/s/73ifu7y88y8l3qe/HEY-menu-on-click-demo.gif?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" />
 
 Notice how the `<turbo-frame>` was initially empty:
 
-<img class="img--centered" src="https://www.dropbox.com/s/6gonlv0ee587x7z/HEY-menu-empty-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" width="612" height="60" />
+<img class="img--centered" src="https://www.dropbox.com/s/6gonlv0ee587x7z/HEY-menu-empty-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" />
 
 And was populated only after clicking on the menu button:
 
-<img class="img--centered" src="https://www.dropbox.com/s/uv80ohcd0mu90ll/HEY-meny-populated-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" width="613" height="119" />
+<img class="img--centered" src="https://www.dropbox.com/s/yb5tgvww08n1vrg/HEY-menu-populated-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" />
 
 For the next couple of entries in this series, we're going to be replicating the
 HEY menu in a fake email service called _**YO!**_ This is the end result:
 
-<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
+<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" />
 
 I suggest using the featured approach instead of changing the frame's `src` with
 pure JavaScript. Here's why:
@@ -72,30 +72,21 @@ pure JavaScript. Here's why:
 * It gives us a reusable Stimulus controller so we can replicate this behavior on other parts of our app using HTML alone.
 * It makes each element's purpose evident directly from the HTML.
 * It allows our site to still work without JavaScript. Albeit with a poorer user experience.
-
----
-**Note:**
-
-_Basecamp was recently_ <a href="https://www.platformer.news/p/-what-really-happened-at-basecamp" target="_blank">_embroiled in controversy_</a>. _This post takes a look inside the hood of HEY, a product of Basecamp, in admiration of the commendable work done by current and former employees of the company. We'd like to keep these people and their work as the focus we're admiring here._
-
----
+* It's super clean.
 
 ## An Implementation
 
 We're going to be implementing the functionality shown in the above GIF
 (just the loading frames on-demand part. Filters will be covered in a future post).
-Here's a refresher of what it's going to look like:
-
-<img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" width="600" height="325" />
-
-I emailed Basecamp about this, by the way. they're okay with you and I building a HEY
+I emailed Basecamp about this, by the way. They're okay with you and I building a HEY
 clone for educational purposes.
 
-Here's a working implementation of the above GIF. Note that serving a `/navigation`
-route is necessary to actually populate the frame (<a href="https://github.com/JoseFarias/yo-email/blob/0a10338a53341312cc469fed8ddfd91ec30fd86e/src/server/views/navigation.html" target="_blank">see repo</a>).
+Here's the code with a couple highlights to help guide your attention to the important bits.
+Note that serving a `/navigation` route is necessary to actually populate the frame (<a href="https://github.com/JoseFarias/yo-email/blob/0a10338a53341312cc469fed8ddfd91ec30fd86e/src/server/views/navigation.html" target="_blank">see repo</a>).
 An implementation breakdown is available after the code blocks.
 
 <meta data-controller="callout" data-callout-text-value="summary">
+<meta data-controller="callout" data-callout-text-value="data-turbo-frame" data-callout-type-value="green">
 <meta data-controller="callout" data-callout-text-value="my_navigation" data-callout-type-value="blue">
 <meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink">
 
@@ -213,8 +204,6 @@ implementation check out the <a href="https://github.com/JoseFarias/yo-email" ta
 
 ## Implementation Breakdown
 
-This can be broken down into:
-
 **Markup:**
 
 1. Have an interactive element (in this case `<details>`)
@@ -225,11 +214,11 @@ This can be broken down into:
 
 **Interactivity:**
 
-1. Have a Stimulus controller hide the `<a>` tag on init, we won't need it if Stimulus is running (which means JS is enabled)
+1. Have the connected Stimulus controller hide the `<a>` tag. We won't need it if Stimulus is running (which means JS is enabled).
 1. When `#update` is called, simulate a click on the hidden `<a>` tag
 1. Use `await` to halt execution until the promise returned by the frame's `#loaded` method is resolved
 1. Execute any side effects that happen after content is loaded (in our case, flipping the menu's arrow indicator)
-1. Add/modify aria labels throughout, when appropriate
+1. Add/modify aria labels throughout, when appropriate. This is important for semantics and accessibility.
 
 
 Notice how using appropriate HTML semantics makes it easy to query and manipulate the DOM.
@@ -242,6 +231,7 @@ We'll see other examples of this using `aria` attributes in a later post.
 Here's an attempt to abstract our implementation into a reusable pattern using HTML and StimulusJS.
 
 <meta data-controller="callout" data-callout-text-value="data-controller=&quot;popup-menu&quot;">
+<meta data-controller="callout" data-callout-text-value="data-turbo-frame" data-callout-type-value="green">
 <meta data-controller="callout" data-callout-text-value="my-frame" data-callout-type-value="blue">
 <meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink">
 
