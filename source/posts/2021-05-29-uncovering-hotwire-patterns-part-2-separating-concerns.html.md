@@ -68,7 +68,7 @@ Try navigating to them and see what they look like for you!
 
 We know from <a href="https://www.jorgemanrubia.com/" target="_blank">Jorge Manrubia</a>'s talk
 about <a href="https://youtu.be/GdXOXncUB9M?t=2499" target="_blank">fighting the merchants of complexity</a>
-that Basecamp does appear to think of these menus are REST resources. For example,
+that Basecamp does appear to think of these menus as REST resources. For example,
 the `Me` menu has its own controller that looks something like:
 
 ```ruby
