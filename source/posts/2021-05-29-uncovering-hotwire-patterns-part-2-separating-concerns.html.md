@@ -92,7 +92,7 @@ By doing this, we're able to keep the surface area of our domain components smal
 In <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">last post</a>'s example,
 we replicated the HEY menu in a fake email service called _**YO!**_
 (code available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>).
-Here's that that looked like:
+Here's what that looked like:
 
 <img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" />
 
