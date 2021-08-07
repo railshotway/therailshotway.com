@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <link rel="icon" href="/favicon.ico">
+
+  <title>Rails is the Hot Way</title>
+
+  <link rel="canonical" href="">
+
+  <link href="/assets/css/poole.css" rel="stylesheet" />
+  <link href="/assets/css/syntax.css" rel="stylesheet" />
+  <link href="/assets/css/lanyon.css" rel="stylesheet" />
+  <link href="/assets/css/styles.css" rel="stylesheet" />
+  <link href="/assets/css/callout.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="">
+  <link rel="shortcut icon" href="">
+
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="">
+  <script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+  <script src="/assets/js/callout.js"></script>
+</head>
+
+<body>
+  <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+    styles, `#sidebar-checkbox` for behavior. -->
+  <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+  <!-- Toggleable sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-item">
+      <p>A blog about using Ruby on Rails and Hotwire to build amazing cross-platform applications.</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="#">Home</a>
+
+
+
+      <!-- <a class="sidebar-nav-item" href="#">STOP IT</a>
+      <span class="sidebar-nav-item">Currently Awesome</span> -->
+    </nav>
+
+    <div class="sidebar-item">
+      <p>
+        Written by <a href="https://josefarias.mx/">Jose Farias</a> and <a href="https://aviflombaum.com">Avi Flombaum</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <small>🔥</small>
+          <a href="/" title="Home">The Rails Hot Way</a>
+          <small>🔥</small>
+        </h3>
+      </div>
+    </div>
+
+    <!-- main body -->
+    <div class="container content">
+        <article>
+    <div class="post__header">
+      <img src="/assets/images/jose.png" class="author__avatar" width="60" height="60" alt="Jose" />
+
+      <div class="post__details">
+        <span>Jose Farias</span>
+        <span>&nbsp;-&nbsp;</span>
+        <span>May 29, 2021</span>
+      </div>
+
+      <h1 class="post__title">Uncovering Hotwire Patterns Part 1: Loading Frames On-Demand</h1>
+    </div>
+
+    <br />
+
+    <p><em>Hotwire is a new technology built on top of mature web principles. Its &ldquo;oldness&rdquo; makes it reliable. And its &ldquo;newness&rdquo; makes it applicable to modern demands.</em></p>
+
+<p><em>This is a series about uncovering patterns for Hotwire by taking a look at how successful companies are using it in production.</em></p>
+
+<hr>
+
+<p>One way we can use turbo frames that&rsquo;s not immediately obvious is separating concerns.</p>
+
+<p>This has several benefits, such as:</p>
+
+<ul>
+<li>Keeping our architecture clean</li>
+<li>Making our HTML easier to read</li>
+<li>Making our app easier to cache</li>
+<li>Loading things only when we need them</li>
+</ul>
+
+<p>That last point is going to be the focus of this post. We might touch on the
+others in future posts.</p>
+
+<h2>Context</h2>
+
+<p>From the <a href="https://turbo.hotwire.dev/handbook/frames#lazily-loading-frames" target="_blank">Hotwire docs</a>,
+we know introducing <code>&lt;turbo-frame&gt;</code> elements with <code>src</code> attributes is enough
+to lazy-load the frame&rsquo;s contents when the page is visited.</p>
+
+<p>But what if we don&rsquo;t want to load the frame&rsquo;s contents immediately? A couple reasons that might be:</p>
+
+<ul>
+<li>Our frame will contain information that is only available after a user takes a certain action</li>
+<li>Our frame is hidden away inside a menu or a modal and we want to avoid unnecessary server hits</li>
+<li>We want to leverage existing patterns in our application</li>
+</ul>
+
+<p>In these cases we&rsquo;d want to <strong>load frames on-demand</strong>. We can do this in multiple ways.</p>
+
+<p>It turns out <a href="/posts/2021/04/17/turbo-file-browser.html" target="_blank">we only need to change the <code>src</code> attribute</a>
+of a <code>&lt;turbo-frame&gt;</code> to make it navigate to a certain page.
+So, technically, we can start with an empty <code>&lt;turbo-frame&gt;</code> with no <code>src</code>
+attribute and then use JavaScript to change its <code>src</code> programmatically.</p>
+
+<p>This is effective and quick. And we might want to go that route for involved
+implementations of this pattern. But <a href="https://hey.com" target="_blank">HEY</a>&rsquo;s
+source code gives us a more elegant way of doing this when the frame is &ldquo;hidden&rdquo;
+behind other interactive elements, such as a menu. Here&rsquo;s what that looks like:</p>
+
+<p><img class="img--centered" src="https://www.dropbox.com/s/73ifu7y88y8l3qe/HEY-menu-on-click-demo.gif?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" /></p>
+
+<p>Notice how the <code>&lt;turbo-frame&gt;</code> was initially empty:</p>
+
+<p><img class="img--centered" src="https://www.dropbox.com/s/6gonlv0ee587x7z/HEY-menu-empty-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" /></p>
+
+<p>And was populated only after clicking on the menu button:</p>
+
+<p><img class="img--centered" src="https://www.dropbox.com/s/yb5tgvww08n1vrg/HEY-menu-populated-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" /></p>
+
+<p>For the next couple of entries in this series, we&rsquo;re going to be replicating the
+HEY menu in a fake email service called <em><strong>YO!</strong></em> This is the end result:</p>
+
+<p><img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" /></p>
+
+<p>I suggest using the featured approach instead of changing the frame&rsquo;s <code>src</code> with
+pure JavaScript. Here&rsquo;s why:</p>
+
+<ul>
+<li>It gives us a reusable Stimulus controller so we can replicate this behavior on other parts of our app using HTML alone.</li>
+<li>It makes each element&rsquo;s purpose evident directly from the HTML.</li>
+<li>It allows our site to still work without JavaScript. Albeit with a poorer user experience.</li>
+<li>It&rsquo;s super clean.</li>
+</ul>
+
+<h2>An Implementation</h2>
+
+<p>We&rsquo;re going to be implementing the functionality shown in the above GIF
+(just the loading frames on-demand part. Filters will be covered in a future post).
+I emailed Basecamp about this, by the way. They&rsquo;re okay with you and I building a HEY
+clone for educational purposes.</p>
+
+<p>Here&rsquo;s the code with a couple highlights to help guide your attention to the important bits.
+Note that serving a <code>/navigation</code> route is necessary to actually populate the frame (<a href="https://github.com/JoseFarias/yo-email/blob/0a10338a53341312cc469fed8ddfd91ec30fd86e/src/server/views/navigation.html" target="_blank">see repo</a>).
+An implementation breakdown is available after the code blocks.</p>
+
+<p><meta data-controller="callout" data-callout-text-value="summary">
+<meta data-controller="callout" data-callout-text-value="data-turbo-frame" data-callout-type-value="green">
+<meta data-controller="callout" data-callout-text-value="my_navigation" data-callout-type-value="blue">
+<meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink"></p>
+<div class="highlight"><pre class="highlight html"><code><span class="c">&lt;!-- views/index.html --&gt;</span>
+
+<span class="nt">&lt;nav</span> <span class="na">class=</span><span class="s">"container"</span>
+     <span class="na">aria-label=</span><span class="s">"Main"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"row"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-12"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;details</span> <span class="na">data-controller=</span><span class="s">"popup-menu"</span>
+               <span class="na">data-action=</span><span class="s">"toggle-&gt;popup-menu#update"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;summary</span> <span class="na">aria-label=</span><span class="s">"Go to"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span&gt;</span><span class="ni">&amp;#9996;</span><span class="nt">&lt;/span&gt;</span> <span class="c">&lt;!-- Wave emoji --&gt;</span>
+          <span class="nt">&lt;span&gt;</span>YO!<span class="nt">&lt;/span&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"material-icons-round"</span>
+                <span class="na">data-popup-menu-target=</span><span class="s">"arrow"</span><span class="nt">&gt;</span>
+                expand_more
+          <span class="nt">&lt;/span&gt;</span>
+
+          <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/navigation"</span>
+             <span class="na">data-turbo-frame=</span><span class="s">"my_navigation"</span>
+             <span class="na">data-popup-menu-target=</span><span class="s">"link"</span><span class="nt">&gt;</span>
+              YO!
+          <span class="nt">&lt;/a&gt;</span>
+        <span class="nt">&lt;/summary&gt;</span>
+
+        <span class="nt">&lt;turbo-frame</span> <span class="na">id=</span><span class="s">"my_navigation"</span>
+                     <span class="na">target=</span><span class="s">"_top"</span>
+                     <span class="na">role=</span><span class="s">"menu"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"u-for-screen-reader"</span> <span class="na">role=</span><span class="s">"menuitem"</span> <span class="na">aria-disabled=</span><span class="s">"true"</span><span class="nt">&gt;</span>Loading<span class="nt">&lt;/span&gt;</span>
+
+          <span class="c">&lt;!-- Loader from https://loading.io/css/ --&gt;</span>
+          <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"loader"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"lds-ellipsis"</span><span class="nt">&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;/div&gt;</span>
+          <span class="nt">&lt;/div&gt;</span>
+        <span class="nt">&lt;/turbo-frame&gt;</span>
+      <span class="nt">&lt;/details&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/nav&gt;</span>
+</code></pre></div>
+<p><meta data-controller="callout" data-callout-text-value="summaryElement">
+<meta data-controller="callout" data-callout-text-value="&quot;summary&quot;">
+<meta data-controller="callout" data-callout-text-value="&quot;data-turbo-frame&quot;" data-callout-type-value="blue">
+<meta data-controller="callout" data-callout-text-value="&quot;link&quot;" data-callout-type-value="pink">
+<meta data-controller="callout" data-callout-text-value="linkTarget" data-callout-type-value="pink">
+<meta data-controller="callout" data-callout-text-value="frameElement" data-callout-type-value="green"></p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="c1">// js/controllers/popup_menu_controller.js</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="nx">Controller</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">stimulus</span><span class="dl">"</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">class</span> <span class="kd">extends</span> <span class="nx">Controller</span> <span class="p">{</span>
+  <span class="kd">static</span> <span class="nx">targets</span> <span class="o">=</span> <span class="p">[</span><span class="dl">"</span><span class="s2">arrow</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">link</span><span class="dl">"</span><span class="p">]</span>
+
+  <span class="nx">initialize</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hasLinkTarget</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">hidden</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">connect</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">summaryElement</span><span class="p">?.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="dl">"</span><span class="s2">aria-haspopup</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">menu</span><span class="dl">"</span><span class="p">)</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">update</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="nx">disconnect</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="k">async</span> <span class="nx">update</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">arrowTarget</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">expand_more</span><span class="dl">"</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">open</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hasLinkTarget</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">click</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">frameElement</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">frameElement</span><span class="p">.</span><span class="nx">loaded</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">summaryElement</span><span class="p">?.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="dl">"</span><span class="s2">aria-expanded</span><span class="dl">"</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">open</span><span class="p">)</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">arrowTarget</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">expand_less</span><span class="dl">"</span>
+  <span class="p">}</span>
+
+  <span class="nx">close</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">open</span> <span class="o">=</span> <span class="kc">false</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Private</span>
+
+  <span class="kd">get</span> <span class="nx">summaryElement</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="dl">"</span><span class="s2">summary</span><span class="dl">"</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="kd">get</span> <span class="nx">frameElement</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">id</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasLinkTarget</span> <span class="o">&amp;&amp;</span>
+               <span class="k">this</span><span class="p">.</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="dl">"</span><span class="s2">data-turbo-frame</span><span class="dl">"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nx">id</span> <span class="o">&amp;&amp;</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This is a simplified version of the code from the gif above. I mostly omitted
+CSS classes and other distracting attributes to make things cleaner. If you&rsquo;re looking for a 100% functioning
+implementation check out the <a href="https://github.com/JoseFarias/yo-email" target="_blank">GitHub repo</a>.</p>
+
+<h2>Implementation Breakdown</h2>
+
+<p><strong>Markup:</strong></p>
+
+<ol>
+<li>Have an interactive element (in this case <code>&lt;details&gt;</code>)</li>
+<li>Connect it to the <em>Popup Menu</em> Stimulus controller</li>
+<li>Have the element call <code>#update</code> when interacted with</li>
+<li>Have the element contain an <code>&lt;a&gt;</code> tag with <code>href</code> and <code>data-turbo-frame</code> attributes</li>
+<li>Connect the <code>&lt;a&gt;</code> tag with the Stimulus controller via <code>data-popup-menu-target=&quot;link&quot;</code></li>
+</ol>
+
+<p><strong>Interactivity:</strong></p>
+
+<ol>
+<li>Have the connected Stimulus controller hide the <code>&lt;a&gt;</code> tag. We won&rsquo;t need it if Stimulus is running (which means JS is enabled).</li>
+<li>When <code>#update</code> is called, simulate a click on the hidden <code>&lt;a&gt;</code> tag</li>
+<li>Use <code>await</code> to halt execution until the promise returned by the frame&rsquo;s <code>#loaded</code> method is resolved</li>
+<li>Execute any side effects that happen after content is loaded (in our case, flipping the menu&rsquo;s arrow indicator)</li>
+<li>Add/modify aria labels throughout, when appropriate. This is important for semantics and accessibility.</li>
+</ol>
+
+<p>Notice how using appropriate HTML semantics makes it easy to query and manipulate the DOM.
+In this case, HEY uses a <code>&lt;summary&gt;</code> tag within a <code>&lt;details&gt;</code> element where other
+implementations might opt for nested <code>&lt;div&gt;</code>s (which would be semantically incorrect).
+We&rsquo;ll see other examples of this using <code>aria</code> attributes in a later post.</p>
+
+<h2>The Pattern</h2>
+
+<p>Here&rsquo;s an attempt to abstract our implementation into a reusable pattern using HTML and StimulusJS.</p>
+
+<p><meta data-controller="callout" data-callout-text-value="data-controller=&quot;popup-menu&quot;">
+<meta data-controller="callout" data-callout-text-value="data-turbo-frame" data-callout-type-value="green">
+<meta data-controller="callout" data-callout-text-value="my-frame" data-callout-type-value="blue">
+<meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink"></p>
+<div class="highlight"><pre class="highlight html"><code><span class="c">&lt;!--
+  We're using a `&lt;details&gt;` element inside a `&lt;nav&gt;` here.
+  But this would work with any element that
+    1. Connects to the appropriate Stimulus controller
+    2. Calls #update when interacted with
+    3. Contains an `&lt;a&gt;` tag with `href` and `data-turbo-frame` attributes
+    4. Makes the `&lt;a&gt;` tag a "link" target for the Stimulus controller
+
+  Note that the `href` attribute should point to a page that contains a
+  `&lt;turbo-frame&gt;` with a matching `id` to the one on this page.
+--&gt;</span>
+<span class="nt">&lt;nav&gt;</span>
+  <span class="nt">&lt;details</span> <span class="na">data-controller=</span><span class="s">"popup-menu"</span> <span class="na">data-action=</span><span class="s">"toggle-&gt;popup-menu#update"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;summary&gt;</span>
+      <span class="nt">&lt;span&gt;</span>Markup for our interface goes here<span class="nt">&lt;/span&gt;</span>
+
+      <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/frame-content"</span> <span class="na">data-turbo-frame=</span><span class="s">"my-frame"</span> <span class="na">data-popup-menu-target=</span><span class="s">"link"</span><span class="nt">&gt;</span>
+        Link hidden by Stimulus controller
+      <span class="nt">&lt;/a&gt;</span>
+    <span class="nt">&lt;/summary&gt;</span>
+  <span class="nt">&lt;/details&gt;</span>
+<span class="nt">&lt;/nav&gt;</span>
+
+<span class="c">&lt;!--
+  This frame id *has* to match the `data-turbo-frame` value in the `&lt;a&gt;` tag.
+
+  This frame would usually
+    1. Be hidden by default
+    2. Be shown when the Stimulus controller's element is interacted with
+    3. Contain a loading state to be displayed while the frame loads
+
+  Note that this frame can be located anywhere on the current page.
+--&gt;</span>
+<span class="nt">&lt;turbo-frame</span> <span class="na">id=</span><span class="s">"my-frame"</span><span class="nt">&gt;</span>
+  Initial state.
+<span class="nt">&lt;/turbo-frame&gt;</span>
+</code></pre></div>
+<p><meta data-controller="callout" data-callout-text-value="&quot;data-turbo-frame&quot;" data-callout-type-value="blue">
+<meta data-controller="callout" data-callout-text-value="&quot;link&quot;" data-callout-type-value="pink">
+<meta data-controller="callout" data-callout-text-value="linkTarget" data-callout-type-value="pink">
+<meta data-controller="callout" data-callout-text-value="frameElement" data-callout-type-value="green"></p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="c1">// js/controllers/popup_menu_controller.js</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="nx">Controller</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">stimulus</span><span class="dl">"</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">class</span> <span class="kd">extends</span> <span class="nx">Controller</span> <span class="p">{</span>
+  <span class="kd">static</span> <span class="nx">targets</span> <span class="o">=</span> <span class="p">[</span><span class="dl">"</span><span class="s2">link</span><span class="dl">"</span><span class="p">]</span>
+
+  <span class="nx">initialize</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hasLinkTarget</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">hidden</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">connect</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">update</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="nx">disconnect</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="k">async</span> <span class="nx">update</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// `.isActive` is pseudo-code. Make this into a guard-clause to avoid misfires.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">isActive</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hasLinkTarget</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">click</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">frameElement</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">frameElement</span><span class="p">.</span><span class="nx">loaded</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">close</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// `isActive` is pseudo-code. Disable the element in some way to avoid misfires.</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">isActive</span> <span class="o">=</span> <span class="kc">false</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Private</span>
+
+  <span class="kd">get</span> <span class="nx">frameElement</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">id</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasLinkTarget</span> <span class="o">&amp;&amp;</span>
+               <span class="k">this</span><span class="p">.</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="dl">"</span><span class="s2">data-turbo-frame</span><span class="dl">"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nx">id</span> <span class="o">&amp;&amp;</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2>Wrap up</h2>
+
+<p>We don&rsquo;t always want our frames to load immediately. And this Markup + Stimulus combo
+gives us an elegant, reusable mechanism to load frames on-demand to avoid unnecessary
+server hits, among other benefits.</p>
+
+<p>I&rsquo;m going to keep extracting patterns from apps like HEY in upcoming posts.
+So follow me on <a href="https://twitter.com/fariastweets" target="_blank">Twitter</a> to stay tuned!</p>
+
+<h2>Comments</h2>
+
+<p>We&rsquo;re only just setting up this blog and don&rsquo;t have plans for a comments section yet.
+But feel free to reach out on <a href="https://twitter.com/fariastweets" target="_blank">Twitter</a>.</p>
+
+
+    <div class="post__footer">
+        <h3>Entries in this series</h3>
+        <ul>
+          <li>
+            <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank">Part 1: Loading Frames On-Demand</a>
+          </li>
+          <li>
+            <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-2-separating-concerns.html" target="_blank">Part 2: Separating Concerns</a>
+          </li>
+        </ul>
+    </div>
+  </article>
+
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+  <script src="/assets/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <link href="https://railshotway.com/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://railshotway.com" rel="alternate" type="text/html"/>
+  <updated>2021-05-29T12:30:00+00:00</updated>
+  <id>https://railshotway.com/feed.xml</id>
+  <title type="html">Rails Hotway</title>
+  <subtitle>A blog about using Ruby on Rails and Hotwire to build amazing cross-platform applications</subtitle>
+  <author>
+    <name>Jose Farias and Avi Flombaum</name>
+  </author>
+  <entry>
+    <title type="html">Uncovering Hotwire Patterns Part 2: Separating Concerns</title>
+    <author>
+      <name>Jose Farias</name>
+    </author>
+    <link href="https://railshotway.com/posts/2021-05-29-uncovering-hotwire-patterns-part-2-separating-concerns.html" rel="alternate" type="text/html" title="Uncovering Hotwire Patterns Part 2: Separating Concerns"/>
+    <published>2021-05-29T12:30:00+00:00</published>
+    <updated>2021-05-29T12:30:00+00:00</updated>
+    <id>https://railshotway.com/posts/2021-05-29-uncovering-hotwire-patterns-part-2-separating-concerns.html</id>
+    <content type="html" xml:base="https://railshotway.com/posts/2021-05-29-uncovering-hotwire-patterns-part-2-separating-concerns.html">&lt;p&gt;&lt;em&gt;Hotwire is a new technology built on top of mature web principles. Its &amp;ldquo;oldness&amp;rdquo; makes it reliable. And its &amp;ldquo;newness&amp;rdquo; makes it applicable to modern demands.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;This is a series about uncovering patterns for Hotwire by taking a look at how successful companies are using it in production.&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;p&gt;&lt;a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank"&gt;Last time&lt;/a&gt;,
+we talked about one of the benefits of separating concerns by leveraging Turbo Frames.
+Today, I&amp;rsquo;m writing about the actual separation of concerns.&lt;/p&gt;
+
+&lt;p&gt;This is going to be a post about a thought pattern, rather than a code pattern.
+And how following web standards allows for quick and easy implementations of
+the subject matter.&lt;/p&gt;
+
+&lt;h2&gt;Context&lt;/h2&gt;
+
+&lt;p&gt;HTML can get very messy, very quick. That&amp;rsquo;s one of the reasons abstractions such as
+&lt;a href="https://haml.info/" target="_blank"&gt;Haml&lt;/a&gt;,
+&lt;a href="https://pugjs.org/" target="_blank"&gt;Pug&lt;/a&gt;, and
+&lt;a href="http://slim-lang.com/" target="_blank"&gt;Slim&lt;/a&gt; emerge.
+But HTML can actually be beautiful and easy to read if we keep our
+markup &lt;strong&gt;semantic&lt;/strong&gt; and &lt;strong&gt;short&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Rails allows for that to some extent through modest use of layouts and partials.
+However, that approach can result in mixing in too many concerns.
+We can take things further by leveraging Hotwire.&lt;/p&gt;
+
+&lt;p&gt;We usually picture database-backed models when we talk about REST resources.
+But let&amp;rsquo;s consider the posibility of our UI components also being resources.
+This would allow us to separate complex UI elements into their own concerns within
+our code and use Turbo Frames to load each element where appropriate. This is preferable
+to rendering complex markup inline for a single HTTP request (typically through the use of partials),
+as it keeps our code cleaner.&lt;/p&gt;
+
+&lt;p&gt;Today&amp;rsquo;s pattern takes advantage of things simply falling into place when web standards
+are followed. In this case, following REST guidelines makes it easy to reason
+about our application. Which, in turn, makes it easy to connect and maintain
+multiple components.&lt;/p&gt;
+
+&lt;h2&gt;An Implementation&lt;/h2&gt;
+
+&lt;p&gt;In &lt;a href="https://hey.com" target="_blank"&gt;HEY&lt;/a&gt;, menus and trays have their own
+RESTful URLs. This is what it looks like if we navigate to, say, &lt;code&gt;https://app.hey.com/my/navigation&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class="img--centered" src="https://www.dropbox.com/s/0ehjy7h3q3n7jm0/my-navigation.png?raw=1" alt="Image showing the HEY menu navigation by itself, rendered across the full-width of the screen" /&gt;&lt;/p&gt;
+
+&lt;p&gt;We usually only see the HEY menu confined to a small box positioned just below the navbar.
+But we can absolutely navigate to this full-width version of the menu, because it&amp;rsquo;s a resource.&lt;/p&gt;
+
+&lt;p&gt;Here are some other routes we typically only encounter within Turbo Frames:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/me&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/set_aside/tray&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/reply_later/tray&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/postings/&amp;lt;posting_id_just_the_number)&amp;gt;/note/edit&lt;/code&gt; (Posting ids can be found by inspecting the row of one of your emails, look for &lt;code&gt;&amp;lt;article&amp;gt;&lt;/code&gt; elements)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Try navigating to them and see what they look like for you!&lt;/p&gt;
+
+&lt;p&gt;We know from &lt;a href="https://www.jorgemanrubia.com/" target="_blank"&gt;Jorge Manrubia&lt;/a&gt;&amp;rsquo;s talk
+about &lt;a href="https://youtu.be/GdXOXncUB9M?t=2499" target="_blank"&gt;fighting the merchants of complexity&lt;/a&gt;
+that Basecamp does appear to think of these menus as REST resources. For example,
+the &lt;code&gt;Me&lt;/code&gt; menu has its own controller that looks something like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;MeController&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="no"&gt;ApplicationController&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;show&lt;/span&gt;
+    &lt;span class="c1"&gt;# Code goes here&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That is to say, &lt;code&gt;Me&lt;/code&gt; is something that can be instantiated and shown to users.
+And what does a &lt;code&gt;Me&lt;/code&gt; look like? Well, it looks like a &lt;code&gt;Me&lt;/code&gt; &lt;em&gt;menu&lt;/em&gt;, of course!&lt;/p&gt;
+
+&lt;h2&gt;The Pattern&lt;/h2&gt;
+
+&lt;p&gt;Again, this is more of a thought pattern. An invitation of sorts to think about
+our application as a combination of REST resources. And we&amp;rsquo;re not only talking
+about our database-connected models. We&amp;rsquo;re talking about our UI components as well.&lt;/p&gt;
+
+&lt;p&gt;By doing this, we&amp;rsquo;re able to keep the surface area of our domain components small.&lt;/p&gt;
+
+&lt;p&gt;In &lt;a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank"&gt;last post&lt;/a&gt;&amp;rsquo;s example,
+we replicated the HEY menu in a fake email service called &lt;em&gt;&lt;strong&gt;YO!&lt;/strong&gt;&lt;/em&gt;
+(code available at &lt;a href="https://github.com/JoseFarias/yo-email" target="_blank"&gt;this GitHub repo&lt;/a&gt;).
+Here&amp;rsquo;s what that looked like:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" /&gt;&lt;/p&gt;
+
+&lt;p&gt;This menu contains a search form that can be kind of complex. It has its own rules
+of engagement. It fetches records and displays them in an entirely different frame
+(this is a pattern we&amp;rsquo;ll talk about in a future post). It&amp;rsquo;s &lt;em&gt;its own thing&lt;/em&gt;. And,
+as such, it shouldn&amp;rsquo;t be bundled with the rest of the navigation. Not even within partials.&lt;/p&gt;
+
+&lt;p&gt;Components like this one should have their own place to live.
+They deserve their own controller. Or at least their own action within an existing controller.
+With Hotwire, we can give them that place to live and load them asynchronously
+&lt;a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank"&gt;as needed&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Contextual side-note: This is not a new concept. The Rails community has been doing this for a while. But Hotwire makes it super easy to implement.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;One last thing to remember is the importance of flexibility. It doesn&amp;rsquo;t always make
+sense to force a component into a REST resource. We must make sensible choices that
+result in our application being easier to reason about. Let&amp;rsquo;s not follow guidelines blindly.&lt;/p&gt;
+
+&lt;h2&gt;Wrap Up&lt;/h2&gt;
+
+&lt;p&gt;Thinking of our application (UI included) as a combination of REST resources
+makes it easy to reason about, easy to navigate, and easy to maintain.&lt;/p&gt;
+
+&lt;p&gt;Hotwire makes it a breeze to connect different parts of our application when
+architecting our domain in this way.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;m going to keep extracting patterns from apps like HEY in upcoming posts.
+So follow me on &lt;a href="https://twitter.com/fariastweets" target="_blank"&gt;Twitter&lt;/a&gt; to stay tuned!&lt;/p&gt;
+
+&lt;h2&gt;Comments&lt;/h2&gt;
+
+&lt;p&gt;We&amp;rsquo;re only just setting up this blog and don&amp;rsquo;t have plans for a comments section yet.
+But feel free to reach out on &lt;a href="https://twitter.com/fariastweets" target="_blank"&gt;Twitter&lt;/a&gt;.&lt;/p&gt;
+</content>
+    <media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://railshotway.com/thumbnail.png"/>
+    <media:content xmlns:media="http://search.yahoo.com/mrss/" medium="image" url="https://railshotway.com/thumbnail.png"/>
+  </entry>
+  <entry>
+    <title type="html">Uncovering Hotwire Patterns Part 1: Loading Frames On-Demand</title>
+    <author>
+      <name>Jose Farias</name>
+    </author>
+    <link href="https://railshotway.com/posts/2021-05-29-uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" rel="alternate" type="text/html" title="Uncovering Hotwire Patterns Part 1: Loading Frames On-Demand"/>
+    <published>2021-05-29T12:00:00+00:00</published>
+    <updated>2021-05-29T12:00:00+00:00</updated>
+    <id>https://railshotway.com/posts/2021-05-29-uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html</id>
+    <content type="html" xml:base="https://railshotway.com/posts/2021-05-29-uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html">&lt;p&gt;&lt;em&gt;Hotwire is a new technology built on top of mature web principles. Its &amp;ldquo;oldness&amp;rdquo; makes it reliable. And its &amp;ldquo;newness&amp;rdquo; makes it applicable to modern demands.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;This is a series about uncovering patterns for Hotwire by taking a look at how successful companies are using it in production.&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;p&gt;One way we can use turbo frames that&amp;rsquo;s not immediately obvious is separating concerns.&lt;/p&gt;
+
+&lt;p&gt;This has several benefits, such as:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Keeping our architecture clean&lt;/li&gt;
+&lt;li&gt;Making our HTML easier to read&lt;/li&gt;
+&lt;li&gt;Making our app easier to cache&lt;/li&gt;
+&lt;li&gt;Loading things only when we need them&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;That last point is going to be the focus of this post. We might touch on the
+others in future posts.&lt;/p&gt;
+
+&lt;h2&gt;Context&lt;/h2&gt;
+
+&lt;p&gt;From the &lt;a href="https://turbo.hotwire.dev/handbook/frames#lazily-loading-frames" target="_blank"&gt;Hotwire docs&lt;/a&gt;,
+we know introducing &lt;code&gt;&amp;lt;turbo-frame&amp;gt;&lt;/code&gt; elements with &lt;code&gt;src&lt;/code&gt; attributes is enough
+to lazy-load the frame&amp;rsquo;s contents when the page is visited.&lt;/p&gt;
+
+&lt;p&gt;But what if we don&amp;rsquo;t want to load the frame&amp;rsquo;s contents immediately? A couple reasons that might be:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Our frame will contain information that is only available after a user takes a certain action&lt;/li&gt;
+&lt;li&gt;Our frame is hidden away inside a menu or a modal and we want to avoid unnecessary server hits&lt;/li&gt;
+&lt;li&gt;We want to leverage existing patterns in our application&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In these cases we&amp;rsquo;d want to &lt;strong&gt;load frames on-demand&lt;/strong&gt;. We can do this in multiple ways.&lt;/p&gt;
+
+&lt;p&gt;It turns out &lt;a href="/posts/2021/04/17/turbo-file-browser.html" target="_blank"&gt;we only need to change the &lt;code&gt;src&lt;/code&gt; attribute&lt;/a&gt;
+of a &lt;code&gt;&amp;lt;turbo-frame&amp;gt;&lt;/code&gt; to make it navigate to a certain page.
+So, technically, we can start with an empty &lt;code&gt;&amp;lt;turbo-frame&amp;gt;&lt;/code&gt; with no &lt;code&gt;src&lt;/code&gt;
+attribute and then use JavaScript to change its &lt;code&gt;src&lt;/code&gt; programmatically.&lt;/p&gt;
+
+&lt;p&gt;This is effective and quick. And we might want to go that route for involved
+implementations of this pattern. But &lt;a href="https://hey.com" target="_blank"&gt;HEY&lt;/a&gt;&amp;rsquo;s
+source code gives us a more elegant way of doing this when the frame is &amp;ldquo;hidden&amp;rdquo;
+behind other interactive elements, such as a menu. Here&amp;rsquo;s what that looks like:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class="img--centered" src="https://www.dropbox.com/s/73ifu7y88y8l3qe/HEY-menu-on-click-demo.gif?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" /&gt;&lt;/p&gt;
+
+&lt;p&gt;Notice how the &lt;code&gt;&amp;lt;turbo-frame&amp;gt;&lt;/code&gt; was initially empty:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class="img--centered" src="https://www.dropbox.com/s/6gonlv0ee587x7z/HEY-menu-empty-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" /&gt;&lt;/p&gt;
+
+&lt;p&gt;And was populated only after clicking on the menu button:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class="img--centered" src="https://www.dropbox.com/s/yb5tgvww08n1vrg/HEY-menu-populated-frame.png?raw=1" alt="Gif showing the HEY menu loading a Turbo Frame on-demand" /&gt;&lt;/p&gt;
+
+&lt;p&gt;For the next couple of entries in this series, we&amp;rsquo;re going to be replicating the
+HEY menu in a fake email service called &lt;em&gt;&lt;strong&gt;YO!&lt;/strong&gt;&lt;/em&gt; This is the end result:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" /&gt;&lt;/p&gt;
+
+&lt;p&gt;I suggest using the featured approach instead of changing the frame&amp;rsquo;s &lt;code&gt;src&lt;/code&gt; with
+pure JavaScript. Here&amp;rsquo;s why:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;It gives us a reusable Stimulus controller so we can replicate this behavior on other parts of our app using HTML alone.&lt;/li&gt;
+&lt;li&gt;It makes each element&amp;rsquo;s purpose evident directly from the HTML.&lt;/li&gt;
+&lt;li&gt;It allows our site to still work without JavaScript. Albeit with a poorer user experience.&lt;/li&gt;
+&lt;li&gt;It&amp;rsquo;s super clean.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;An Implementation&lt;/h2&gt;
+
+&lt;p&gt;We&amp;rsquo;re going to be implementing the functionality shown in the above GIF
+(just the loading frames on-demand part. Filters will be covered in a future post).
+I emailed Basecamp about this, by the way. They&amp;rsquo;re okay with you and I building a HEY
+clone for educational purposes.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s the code with a couple highlights to help guide your attention to the important bits.
+Note that serving a &lt;code&gt;/navigation&lt;/code&gt; route is necessary to actually populate the frame (&lt;a href="https://github.com/JoseFarias/yo-email/blob/0a10338a53341312cc469fed8ddfd91ec30fd86e/src/server/views/navigation.html" target="_blank"&gt;see repo&lt;/a&gt;).
+An implementation breakdown is available after the code blocks.&lt;/p&gt;
+
+&lt;p&gt;&lt;meta data-controller="callout" data-callout-text-value="summary"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="data-turbo-frame" data-callout-type-value="green"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="my_navigation" data-callout-type-value="blue"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink"&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight html"&gt;&lt;code&gt;&lt;span class="c"&gt;&amp;lt;!-- views/index.html --&amp;gt;&lt;/span&gt;
+
+&lt;span class="nt"&gt;&amp;lt;nav&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"container"&lt;/span&gt;
+     &lt;span class="na"&gt;aria-label=&lt;/span&gt;&lt;span class="s"&gt;"Main"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"row"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"col-12"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;details&lt;/span&gt; &lt;span class="na"&gt;data-controller=&lt;/span&gt;&lt;span class="s"&gt;"popup-menu"&lt;/span&gt;
+               &lt;span class="na"&gt;data-action=&lt;/span&gt;&lt;span class="s"&gt;"toggle-&amp;gt;popup-menu#update"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;summary&lt;/span&gt; &lt;span class="na"&gt;aria-label=&lt;/span&gt;&lt;span class="s"&gt;"Go to"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;span&amp;gt;&lt;/span&gt;&lt;span class="ni"&gt;&amp;amp;#9996;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt; &lt;span class="c"&gt;&amp;lt;!-- Wave emoji --&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;span&amp;gt;&lt;/span&gt;YO!&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"material-icons-round"&lt;/span&gt;
+                &lt;span class="na"&gt;data-popup-menu-target=&lt;/span&gt;&lt;span class="s"&gt;"arrow"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                expand_more
+          &lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+
+          &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"/navigation"&lt;/span&gt;
+             &lt;span class="na"&gt;data-turbo-frame=&lt;/span&gt;&lt;span class="s"&gt;"my_navigation"&lt;/span&gt;
+             &lt;span class="na"&gt;data-popup-menu-target=&lt;/span&gt;&lt;span class="s"&gt;"link"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+              YO!
+          &lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/summary&amp;gt;&lt;/span&gt;
+
+        &lt;span class="nt"&gt;&amp;lt;turbo-frame&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"my_navigation"&lt;/span&gt;
+                     &lt;span class="na"&gt;target=&lt;/span&gt;&lt;span class="s"&gt;"_top"&lt;/span&gt;
+                     &lt;span class="na"&gt;role=&lt;/span&gt;&lt;span class="s"&gt;"menu"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"u-for-screen-reader"&lt;/span&gt; &lt;span class="na"&gt;role=&lt;/span&gt;&lt;span class="s"&gt;"menuitem"&lt;/span&gt; &lt;span class="na"&gt;aria-disabled=&lt;/span&gt;&lt;span class="s"&gt;"true"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;Loading&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+
+          &lt;span class="c"&gt;&amp;lt;!-- Loader from https://loading.io/css/ --&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"loader"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"lds-ellipsis"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;div&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;div&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;div&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;div&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/turbo-frame&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;/details&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/nav&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;meta data-controller="callout" data-callout-text-value="summaryElement"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="&amp;quot;summary&amp;quot;"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="&amp;quot;data-turbo-frame&amp;quot;" data-callout-type-value="blue"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="&amp;quot;link&amp;quot;" data-callout-type-value="pink"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="linkTarget" data-callout-type-value="pink"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="frameElement" data-callout-type-value="green"&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight javascript"&gt;&lt;code&gt;&lt;span class="c1"&gt;// js/controllers/popup_menu_controller.js&lt;/span&gt;
+
+&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nx"&gt;Controller&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;stimulus&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;
+
+&lt;span class="k"&gt;export&lt;/span&gt; &lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="kd"&gt;extends&lt;/span&gt; &lt;span class="nx"&gt;Controller&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="nx"&gt;targets&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;arrow&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;link&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+  &lt;span class="nx"&gt;initialize&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hasLinkTarget&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;linkTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hidden&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;connect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;summaryElement&lt;/span&gt;&lt;span class="p"&gt;?.&lt;/span&gt;&lt;span class="nx"&gt;setAttribute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;aria-haspopup&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;menu&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;disconnect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;close&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="k"&gt;async&lt;/span&gt; &lt;span class="nx"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;arrowTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;innerHTML&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;expand_more&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;open&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;return&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hasLinkTarget&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;linkTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;click&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;frameElement&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;await&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;frameElement&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;loaded&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;summaryElement&lt;/span&gt;&lt;span class="p"&gt;?.&lt;/span&gt;&lt;span class="nx"&gt;setAttribute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;aria-expanded&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;open&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;arrowTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;innerHTML&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;expand_less&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;close&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;open&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// Private&lt;/span&gt;
+
+  &lt;span class="kd"&gt;get&lt;/span&gt; &lt;span class="nx"&gt;summaryElement&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;querySelector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;summary&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="kd"&gt;get&lt;/span&gt; &lt;span class="nx"&gt;frameElement&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hasLinkTarget&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+               &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;linkTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getAttribute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;data-turbo-frame&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;document&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getElementById&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This is a simplified version of the code from the gif above. I mostly omitted
+CSS classes and other distracting attributes to make things cleaner. If you&amp;rsquo;re looking for a 100% functioning
+implementation check out the &lt;a href="https://github.com/JoseFarias/yo-email" target="_blank"&gt;GitHub repo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2&gt;Implementation Breakdown&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Markup:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Have an interactive element (in this case &lt;code&gt;&amp;lt;details&amp;gt;&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Connect it to the &lt;em&gt;Popup Menu&lt;/em&gt; Stimulus controller&lt;/li&gt;
+&lt;li&gt;Have the element call &lt;code&gt;#update&lt;/code&gt; when interacted with&lt;/li&gt;
+&lt;li&gt;Have the element contain an &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt; tag with &lt;code&gt;href&lt;/code&gt; and &lt;code&gt;data-turbo-frame&lt;/code&gt; attributes&lt;/li&gt;
+&lt;li&gt;Connect the &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt; tag with the Stimulus controller via &lt;code&gt;data-popup-menu-target=&amp;quot;link&amp;quot;&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Interactivity:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Have the connected Stimulus controller hide the &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt; tag. We won&amp;rsquo;t need it if Stimulus is running (which means JS is enabled).&lt;/li&gt;
+&lt;li&gt;When &lt;code&gt;#update&lt;/code&gt; is called, simulate a click on the hidden &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt; tag&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;await&lt;/code&gt; to halt execution until the promise returned by the frame&amp;rsquo;s &lt;code&gt;#loaded&lt;/code&gt; method is resolved&lt;/li&gt;
+&lt;li&gt;Execute any side effects that happen after content is loaded (in our case, flipping the menu&amp;rsquo;s arrow indicator)&lt;/li&gt;
+&lt;li&gt;Add/modify aria labels throughout, when appropriate. This is important for semantics and accessibility.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Notice how using appropriate HTML semantics makes it easy to query and manipulate the DOM.
+In this case, HEY uses a &lt;code&gt;&amp;lt;summary&amp;gt;&lt;/code&gt; tag within a &lt;code&gt;&amp;lt;details&amp;gt;&lt;/code&gt; element where other
+implementations might opt for nested &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt;s (which would be semantically incorrect).
+We&amp;rsquo;ll see other examples of this using &lt;code&gt;aria&lt;/code&gt; attributes in a later post.&lt;/p&gt;
+
+&lt;h2&gt;The Pattern&lt;/h2&gt;
+
+&lt;p&gt;Here&amp;rsquo;s an attempt to abstract our implementation into a reusable pattern using HTML and StimulusJS.&lt;/p&gt;
+
+&lt;p&gt;&lt;meta data-controller="callout" data-callout-text-value="data-controller=&amp;quot;popup-menu&amp;quot;"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="data-turbo-frame" data-callout-type-value="green"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="my-frame" data-callout-type-value="blue"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="link" data-callout-type-value="pink"&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight html"&gt;&lt;code&gt;&lt;span class="c"&gt;&amp;lt;!--
+  We're using a `&amp;lt;details&amp;gt;` element inside a `&amp;lt;nav&amp;gt;` here.
+  But this would work with any element that
+    1. Connects to the appropriate Stimulus controller
+    2. Calls #update when interacted with
+    3. Contains an `&amp;lt;a&amp;gt;` tag with `href` and `data-turbo-frame` attributes
+    4. Makes the `&amp;lt;a&amp;gt;` tag a "link" target for the Stimulus controller
+
+  Note that the `href` attribute should point to a page that contains a
+  `&amp;lt;turbo-frame&amp;gt;` with a matching `id` to the one on this page.
+--&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;nav&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;details&lt;/span&gt; &lt;span class="na"&gt;data-controller=&lt;/span&gt;&lt;span class="s"&gt;"popup-menu"&lt;/span&gt; &lt;span class="na"&gt;data-action=&lt;/span&gt;&lt;span class="s"&gt;"toggle-&amp;gt;popup-menu#update"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;summary&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;span&amp;gt;&lt;/span&gt;Markup for our interface goes here&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+
+      &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"/frame-content"&lt;/span&gt; &lt;span class="na"&gt;data-turbo-frame=&lt;/span&gt;&lt;span class="s"&gt;"my-frame"&lt;/span&gt; &lt;span class="na"&gt;data-popup-menu-target=&lt;/span&gt;&lt;span class="s"&gt;"link"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        Link hidden by Stimulus controller
+      &lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/summary&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/details&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/nav&amp;gt;&lt;/span&gt;
+
+&lt;span class="c"&gt;&amp;lt;!--
+  This frame id *has* to match the `data-turbo-frame` value in the `&amp;lt;a&amp;gt;` tag.
+
+  This frame would usually
+    1. Be hidden by default
+    2. Be shown when the Stimulus controller's element is interacted with
+    3. Contain a loading state to be displayed while the frame loads
+
+  Note that this frame can be located anywhere on the current page.
+--&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;turbo-frame&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"my-frame"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+  Initial state.
+&lt;span class="nt"&gt;&amp;lt;/turbo-frame&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;meta data-controller="callout" data-callout-text-value="&amp;quot;data-turbo-frame&amp;quot;" data-callout-type-value="blue"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="&amp;quot;link&amp;quot;" data-callout-type-value="pink"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="linkTarget" data-callout-type-value="pink"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="frameElement" data-callout-type-value="green"&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight javascript"&gt;&lt;code&gt;&lt;span class="c1"&gt;// js/controllers/popup_menu_controller.js&lt;/span&gt;
+
+&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nx"&gt;Controller&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;stimulus&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;
+
+&lt;span class="k"&gt;export&lt;/span&gt; &lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="kd"&gt;extends&lt;/span&gt; &lt;span class="nx"&gt;Controller&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="nx"&gt;targets&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;link&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+  &lt;span class="nx"&gt;initialize&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hasLinkTarget&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;linkTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hidden&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;connect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;disconnect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;close&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="k"&gt;async&lt;/span&gt; &lt;span class="nx"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// `.isActive` is pseudo-code. Make this into a guard-clause to avoid misfires.&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;isActive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;return&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hasLinkTarget&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;linkTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;click&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;frameElement&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;await&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;frameElement&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;loaded&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;close&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// `isActive` is pseudo-code. Disable the element in some way to avoid misfires.&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;isActive&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// Private&lt;/span&gt;
+
+  &lt;span class="kd"&gt;get&lt;/span&gt; &lt;span class="nx"&gt;frameElement&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;hasLinkTarget&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+               &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;linkTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getAttribute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;data-turbo-frame&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;document&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getElementById&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Wrap up&lt;/h2&gt;
+
+&lt;p&gt;We don&amp;rsquo;t always want our frames to load immediately. And this Markup + Stimulus combo
+gives us an elegant, reusable mechanism to load frames on-demand to avoid unnecessary
+server hits, among other benefits.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;m going to keep extracting patterns from apps like HEY in upcoming posts.
+So follow me on &lt;a href="https://twitter.com/fariastweets" target="_blank"&gt;Twitter&lt;/a&gt; to stay tuned!&lt;/p&gt;
+
+&lt;h2&gt;Comments&lt;/h2&gt;
+
+&lt;p&gt;We&amp;rsquo;re only just setting up this blog and don&amp;rsquo;t have plans for a comments section yet.
+But feel free to reach out on &lt;a href="https://twitter.com/fariastweets" target="_blank"&gt;Twitter&lt;/a&gt;.&lt;/p&gt;
+</content>
+    <media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://railshotway.com/thumbnail.png"/>
+    <media:content xmlns:media="http://search.yahoo.com/mrss/" medium="image" url="https://railshotway.com/thumbnail.png"/>
+  </entry>
+  <entry>
+    <title type="html">The Value of Code</title>
+    <author>
+      <name>Avi Flombaum</name>
+    </author>
+    <link href="https://railshotway.com/posts/2021-04-24-the-value-of-code.html" rel="alternate" type="text/html" title="The Value of Code"/>
+    <published>2021-04-24T19:44:00+00:00</published>
+    <updated>2021-04-24T19:44:00+00:00</updated>
+    <id>https://railshotway.com/posts/2021-04-24-the-value-of-code.html</id>
+    <content type="html" xml:base="https://railshotway.com/posts/2021-04-24-the-value-of-code.html">&lt;p&gt;In 1989 Sir Tim Berners-Lee began working on a set of technologies that came together to become what is today known as The Web and even the Internet. At its essence, the Web is a global, decentralized, application architecture allowing any computer connected to the internet to serve an application in the form of HTML documents and client-side code over HTTP/S rendered by browsers, which today are powerful graphical and interpreter engines. &lt;/p&gt;
+
+&lt;p&gt;The Web thus represents the most ubiquitous and robust software platform in history. What started as simple HTML documents that could hyperlink to other HTML documents, thereby weaving the web together, now delivers the biggest networked applications in history. Trillions of dollars of value have been created by these applications and endless amounts of social good has been accomplished. &lt;/p&gt;
+
+&lt;p&gt;The Web has done nothing short of change the world and humanity forever. The value of code is the ability to build web applications that make the world a better place.&lt;/p&gt;
+
+&lt;h2&gt;First Principle: Make Meaning&lt;/h2&gt;
+
+&lt;p&gt;Programming is the art and science of giving computers instructions. As computers, the internet, and the Web have matured, the type of applications built have grown in complexity. To solve for this, programmers have created a plethora of incredibly helpful languages, libraries, and patterns. To make the development of software easier is to unleash the creativity of millions and allow individuals, communities, and companies to manifest their dreams and ambitions through their code.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“How do we convince people that in programming simplicity and clarity – in short: what mathematicians call elegance – are not a dispensable luxury, but a crucial matter that decides between success and failure?” Edgar Dijkstra&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The craft of code can be incredibly engaging. Those moments of frustration, followed by the catharsis of solution, the epiphanies of understanding, the marvel at a beautiful implementation pattern, what mathematicians call elegance, and the profound flow states reached, make writing code an intoxicating experience. So much so that software developers can engage in some of the most heated, antagonistic, and caustic battles on the internet over both important and trivial aspects of code.&lt;/p&gt;
+
+&lt;p&gt;While everyone is free to have their individual preferences on what is best, I have always reached for a first principle when thinking about how I write code and how I review the code of my students and team. My first principle is to evaluate code on what I feel is the most important, the most central tenet of the craft, which is paradoxically not the code at all, but the value of the end product. The product I am building is more important to me than how I build it. I care about my code, about languages, frameworks, patterns, and workflows only to the extent that they can help me deliver and ship software reliably. &lt;/p&gt;
+
+&lt;p&gt;If the value in code is rooted in the value of software, code is meaningful because the software we create with it is is meaningful. After 20 years as a software developer, 15 years of managing hundreds of developers on my teams, 10 years teaching over 5,000 how to code and getting them jobs, I believe the following 2nd order value most serves creating meaning with code. &lt;/p&gt;
+
+&lt;h2&gt;Second Order: Speed is Everything&lt;/h2&gt;
+
+&lt;p&gt;Speed is everything. The faster you can implement an idea, the quicker you can iterate, the more iterations, the better the result. Every great person I know in any field is an expert in being fast. There is no talent, there are only people that have failed a lot, kept trying, got feedback, made improvements, gained experience, and after years of this, found success. It&amp;rsquo;s simple. If you can try more approaches, an order of magnitude more, in the same time someone else can try one, you are more likely to land on the best one.&lt;/p&gt;
+
+&lt;p&gt;I remember watching one of the most talented product designers in the world use Photoshop fifteen years ago. At that point I too fancied myself an adequate designer but always found my time in Photoshop cumbersome. I lacked a fluidity with the tool and my designs took me time to make and my organization of the UI elements made making updates hard. Eventually, I would just stop designing in Photoshop and rely on my ability to design directly in code. As fluent as I was in HTML and CSS, I could never really easily play with different aesthetics and would rely on low-fidelity wireframes and sketches to iterate with and then move into code. I always knew that this was holding me and the value of my software back and have been luckily enough to work with some incredibly professional and fast designers. But watching my friend use Photoshop when he was just 22, he was as fluid and smooth with it as I was in my code editor and terminal. Moving between layers, making global edits to design elements and themes, and trying different concepts with the smoothness and speed of water flowing unincumbered down a river. He wasn&amp;rsquo;t famous or rich then, but I knew watching how he worked that he would make and design some of the most important and innovative products in the future.&lt;/p&gt;
+
+&lt;p&gt;To speed there is the speed of development, impacted by the ease of the tools you choose to solve the problems presented by your application. Additionally, there is the speed of the system itself as different languages and frameworks have different implications to how fast your software can be delivered. Finally, there is the speed of your team, how fast are they in these tools, how quickly can they learn and adopt best practices, and how well the ecosystem supports painless collaboration.&lt;/p&gt;
+
+&lt;p&gt;I choose the tools and patterns that most directly impact speed because speed will most directly contribute to my code&amp;rsquo;s value creation, and that is what really matters. I don&amp;rsquo;t care about using the fancy new library. I don&amp;rsquo;t care about needless migrations to newer framework versions just because. I don&amp;rsquo;t care about using the fastest language if a language more suited for the problem domain is fast enough to the end user. I don&amp;rsquo;t care about being cool, trendy, or fancy. I just want me and my team to be fast because that is what signals to me that we are focused on the what&amp;rsquo;s actually important - making great products.&lt;/p&gt;
+
+&lt;h2&gt;Third Factors&lt;/h2&gt;
+
+&lt;p&gt;The values I have found that most impact the speed of my software development, my teams contributions, and the response of the application are, in no particular order:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Stability&lt;/li&gt;
+&lt;li&gt;Maintainability&lt;/li&gt;
+&lt;li&gt;Extensibility&lt;/li&gt;
+&lt;li&gt;Compatibility&lt;/li&gt;
+&lt;li&gt;Ubiquity&lt;/li&gt;
+&lt;li&gt;Interoperability&lt;/li&gt;
+&lt;li&gt;Simplicity&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Stability&lt;/h3&gt;
+
+&lt;p&gt;Stability in software is the integrity of the system. How often are bugs or regressions introduced? How often does the system crash? How often is an issue mysteriously here today but gone tomorrow? How reliably and timely are security and optimization patches provided by the maintainers? I favor tools that demonstrate stability because with stability my software can be developed smoothly, and what is smooth will easily become fast.&lt;/p&gt;
+
+&lt;h3&gt;Maintainability&lt;/h3&gt;
+
+&lt;p&gt;Creating with code carries with the burden of maintenance. Someone will have to be responsible for ensuring that the software continues to perform and can be updated otherwise the value created will dissipate with age. I value how maintainable my software will be and favor choices that are tried and true and have clear and tested paradigms for maintenance. If I can maintain my system unincumbered, I can focus on improving my codebase quickly and get back to the important task of quickly iterating on new concepts and features.&lt;/p&gt;
+
+&lt;h3&gt;Extensibility&lt;/h3&gt;
+
+&lt;p&gt;As the needs of my software change, I want to choose tools that allow for easy additions of logic and data to create new features. I value tools that are built to be compatible with the future. These tools that seek to embrace the best of new ideas allow me to push my applications further. Features like version control, database migrations, clear patterns for where new features go, proper semantic versioning, easy upgrade paths, evolving standard libraries, and conventions over configurations, provide me with the extensibility for my software to continue growing without necessarily growing the complexity. &lt;/p&gt;
+
+&lt;h3&gt;Compatibility&lt;/h3&gt;
+
+&lt;p&gt;Languages and frameworks that provide compatibility with numerous development environments, platforms like the web, Android, iOS, and Desktop, and other language ecosystems allow for frictional adoptions, integrations, and collaborations. When it&amp;rsquo;s easy to augment your application with support systems like Amazon Web Services, micro-services written in other languages, even ingest modules and components written in other languages directly into your application, you are never really constrained by your main language or framework choice. Closed languages and ecosystems that force you to use only what&amp;rsquo;s available within itself will limit your ability to deliver as your needs change. &lt;/p&gt;
+
+&lt;h3&gt;Ubiquity&lt;/h3&gt;
+
+&lt;p&gt;Tools that are commonly available means finding support and infrastructure for your software will be easy. Languages that are standard on most systems, even when the OEM version isn&amp;rsquo;t the best (I&amp;rsquo;m looking at you Ruby that ships with OSX), makes building your code on new systems somewhat less painless. The less you have to support your environment because it is a known and regular setup, preferably one that requires little customization for base performance and productivity, the better. While niche languages are interesting, I tend to favor ones that I know have proliferated far and wide in the systems and programming communities.&lt;/p&gt;
+
+&lt;h3&gt;Interoperability&lt;/h3&gt;
+
+&lt;p&gt;Silos of information and functionality limit your software&amp;rsquo;s ability to provide value by locking its usage to its own environment and interfaces. But beyond choosing tools that allow your software to freely exchange and make us of functionality and data from other systems, interoperability should also be considered from the perspective of how easily you can entirely move a part of your software to another language and ecosystem. Tools that make major migrations and refactoring across languages and platforms natural should be preferred over those that will lock you in and require a full and everlasting commitment to their stacks. &lt;/p&gt;
+
+&lt;h3&gt;Simplicity&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“The tools we use have a profound and devious influence on our thinking habits, and therefore on our thinking abilities.” Edsger Dijkstra&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Finally, I value code that is simple. I find that languages designed to value simplicity, that value readability, that encourage and model code that says what it does over how it does it, lead me to write simpler code. The tools we use will define how we think. In this sense, the values of the tool should mirror the values you have as a developer. Simplicity comes from pattern recognition, from seeing clear similarities between one implementation and another. Code that is proportionate to the problem is easy to understand. Tools that have the integrity needed to accomplish a job means that you can reliably use them thereby simplifying and limiting the choices you need to make. The beauty of code is when it is simple, clear, proportionate, and of high integrity. Favor simplicity as it will increase your speed and that will allow you to make meaningful software.&lt;/p&gt;
+
+&lt;h2&gt;Happiness&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“The goal of Ruby is to make programmers happy. I started out to make a programming language that would make me happy, and as a side effect it’s made many, many programmers happy.&lt;/p&gt;
+
+&lt;p&gt;I hope to see Ruby help every programmer in the world to be productive, and to enjoy programming, and to be happy. That is the primary purpose of Ruby language.” Yukihiro Matsumoto&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In the end, making meaningful software requires a certain amount of pleasure and happiness. It&amp;rsquo;s rare to see programming languages and frameworks value the human condition. The ergonomics of the tools you use, how it feels to use them, how comfortable they are, is crucial. Without tools and languages that make you happy, programming will be an exercise in frustration. Pain from programming will bleed into your product and code and syphon away the meaning of your software, both in how meaningful it felt to make and the meaning it will have for people. The value of code is to feel meaningful while making meaning.&lt;/p&gt;
+</content>
+    <media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://railshotway.com/thumbnail.png"/>
+    <media:content xmlns:media="http://search.yahoo.com/mrss/" medium="image" url="https://railshotway.com/thumbnail.png"/>
+  </entry>
+  <entry>
+    <title type="html">File Browser with Turbo Frames</title>
+    <author>
+      <name>Avi Flombaum</name>
+    </author>
+    <link href="https://railshotway.com/posts/2021-04-17-turbo-file-browser.html" rel="alternate" type="text/html" title="File Browser with Turbo Frames"/>
+    <published>2021-04-17T19:44:00+00:00</published>
+    <updated>2021-04-17T19:44:00+00:00</updated>
+    <id>https://railshotway.com/posts/2021-04-17-turbo-file-browser.html</id>
+    <content type="html" xml:base="https://railshotway.com/posts/2021-04-17-turbo-file-browser.html">&lt;p&gt;I thought it would be interesting to implement the GitHub file browser using turbo frames instead of turbolinks or pjax. It turns out that in trying to implement this interface patter, I discovered some nuances to turbo frames that I thought would be worth sharing.&lt;/p&gt;
+
+&lt;p&gt;The code is packaged as a rails app and you can find the relevant example branch &lt;a href="https://github.com/railshotway/file-browser/tree/turbo-singular-file-browser-frame"&gt;here&lt;/a&gt;. I&amp;rsquo;m going to focus on the Turbo and Hotwire aspects of this pattern and ignore the Rails backend.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="https://p194.p3.n0.cdn.getcloudapp.com/items/xQub7J1y/87dacd6b-d814-4684-95f6-cef3d1e524e6.gif?v=6ddd7ee103e2464502496f5023c6341f" alt="File Browser" /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each link click within the file browser is navigating the &lt;code&gt;&amp;lt;turbo-frame id=&amp;quot;file-browser&amp;quot;&amp;gt;&lt;/code&gt; located within the main &lt;a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/views/file_browsers/show.html.erb"&gt;&lt;code&gt;show.html.erb&lt;/code&gt;&lt;/a&gt; view. &lt;/p&gt;
+
+&lt;p&gt;The relevant parts of the frame code are:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight html"&gt;&lt;code&gt;&lt;span class="nt"&gt;&amp;lt;turbo-frame&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"file_browser"&lt;/span&gt; &lt;span class="na"&gt;data-controller=&lt;/span&gt;&lt;span class="s"&gt;"file-browser"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt; 
+  &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"row"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"offset-2 col-8 border-bottom border-start border-end rounded-bottom"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;%&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="na"&gt;current_node.children.each&lt;/span&gt; &lt;span class="na"&gt;do&lt;/span&gt; &lt;span class="err"&gt;|&lt;/span&gt;&lt;span class="na"&gt;node&lt;/span&gt;&lt;span class="err"&gt;|&lt;/span&gt; &lt;span class="err"&gt;%&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"row border-top"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"/turbo_browser/&amp;lt;%= node.path %&amp;gt;"&lt;/span&gt; &lt;span class="na"&gt;data-action=&lt;/span&gt;&lt;span class="s"&gt;"click-&amp;gt;file-browser#navigate"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"col-12 d-flex align-items-center px-3 py-2"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"me-3 d-flex align-items-center"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+              &lt;span class="nt"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;%=&lt;/span&gt; &lt;span class="na"&gt;file_browser_icon&lt;/span&gt;&lt;span class="err"&gt;(&lt;/span&gt;&lt;span class="na"&gt;node&lt;/span&gt;&lt;span class="err"&gt;)&lt;/span&gt; &lt;span class="err"&gt;%&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;span&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;%=&lt;/span&gt; &lt;span class="na"&gt;node.name&lt;/span&gt; &lt;span class="err"&gt;%&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;%&lt;/span&gt; &lt;span class="na"&gt;end&lt;/span&gt; &lt;span class="err"&gt;%&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/turbo-frame&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Each click within the frame will trigger the frame to navigate by updating the frame source. There&amp;rsquo;s some Stimulus interactions wired to the HTML but the truth is, when I first began implementing this example, I didn&amp;rsquo;t think I was going to need to do anything custom.&lt;/p&gt;
+
+&lt;h2&gt;How It Should Have Worked&lt;/h2&gt;
+
+&lt;p&gt;Because the links are within a turbo-frame, they should have natively triggered the frame to navigate. I wouldn&amp;rsquo;t need to change anything about the Rails backend, sending JSON about the file system back instead of HTML, or teaching the Rails controller how to respond to a full page load vs a frame navigation. All of that is part of the Rails Turbo. However, I encountered two subtleties to Turbo and turbo frames.&lt;/p&gt;
+
+&lt;p&gt;The first is that when you are navigating a turbo frame, the browser&amp;rsquo;s URL wasn&amp;rsquo;t changing or the history was not being informed about a new state. This is a current discussion within Turbo, with the most relevant discussion centering around this &lt;a href="https://github.com/hotwired/turbo/pull/167"&gt;PR&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The second is that when you were clicking on a link that ended in a file extension, like &lt;code&gt;routes.rb&lt;/code&gt; in the above gif, it was triggering a full page load and not a frame navigation. That is to say, for some reason, links within the file system tree that were folders were working fine, links that were to files were not navigating the frame.&lt;/p&gt;
+
+&lt;h2&gt;Maintaining Browser History on Frame Navigation&lt;/h2&gt;
+
+&lt;p&gt;The first issue is a philosophical one. Should navigating a frame be considered a navigational event that represents a change of state? I think by default, no. The point of turbo frames is that they represent interface components, the vast majority of which would not really represent a navigation state change of the application. However, I think it would be a worthwhile addition to the library to allow a frame to maintain history upon navigation. &lt;/p&gt;
+
+&lt;p&gt;In the file browser example, you can imagine this application having more interface elements (like the real GitHub UI does) and you might want to have those interface elements be independent frames. &lt;/p&gt;
+
+&lt;h3&gt;turbolinks vs turbo-frames&lt;/h3&gt;
+
+&lt;p&gt;When you&amp;rsquo;re navigating within the file browser interface element, you still would want to treat that as a frame navigation and not drop down to a turbolink. The reason why is because as a turbolink navigational event, the link click would still trigger an AJAX request, but the Rails backend would send back an entire page response and turbolinks would re-render the entire &lt;code&gt;&amp;lt;body&amp;gt;&lt;/code&gt; of the page. In a complex interface, your forcing the browser to do a lot of work re-rendering the entire interface when really only one component was updated.&lt;/p&gt;
+
+&lt;p&gt;By making the file browser interface component a turbo frame, when that frame is navigated, the Rails backend is only sending back the rendered action&amp;rsquo;s view. There response does not include the entire &lt;code&gt;&amp;lt;html&amp;gt;&lt;/code&gt; of the page but rather just the individual view&amp;rsquo;s html.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="https://p194.p3.n0.cdn.getcloudapp.com/items/DOuDqLX5/eb430f74-e1c3-414c-b733-b672eb0fd129.jpg?v=97e15f48a8b86acb989b90de9b5655a1" alt="View Response" /&gt;&lt;/p&gt;
+
+&lt;p&gt;Rails knew to only send back the view because the request headers referenced a turbo-frame with a value of file-browser. The ajax request knew to include those request headers because the link click originated from within a turbo-frame element.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="https://p194.p3.n0.cdn.getcloudapp.com/items/llu5NeRv/f231bd85-b4c2-4466-8103-e8732180613e.jpg?v=d85a1fa1ee742d28878482d1c11da862" alt="Frame Request Headers" /&gt;&lt;/p&gt;
+
+&lt;p&gt;Navigating within the file tree is easier on the backend and on the frontend. The backend doesn&amp;rsquo;t have to render the &lt;code&gt;application.html.erb&lt;/code&gt; which is easier on your server especially if there is actually a lot to rendering your application interface. And instead of replacing the entire &lt;code&gt;&amp;lt;body&amp;gt;&lt;/code&gt; and rebinding the entire interface of your application, the browser only needs to redraw the targeted frame.&lt;/p&gt;
+
+&lt;h3&gt;How to Maintain Browser History on Frame Navigation&lt;/h3&gt;
+
+&lt;p&gt;In this use-case, you would very much want to be able to maintain the browser history upon the navigation of the main file-browser frame. While you are using turbo-frames to get the benefits mentioned above, you still want the frame navigation to be bookmarkable and to really represent a state change in the application and not just the frame.&lt;/p&gt;
+
+&lt;p&gt;Until the PR addressing this concern is resolved, I found &lt;a href="https://gist.github.com/Intrepidd/ac68cb7dfd17d422374807efb6bf2f42"&gt;two&lt;/a&gt; &lt;a href="https://gist.github.com/Intrepidd/bb1ffc5944a5c1ec3a9f5582753c4b67"&gt;nice&lt;/a&gt; examples of how to do this myself. I ended up implementing a combination of the two in a stimulus &lt;a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/javascript/controllers/file_browser_controller.js"&gt;file_browser_controller.js&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;meta data-controller="callout" data-callout-text-value="import { navigator } from &amp;quot;@hotwired/turbo&amp;quot;"&gt;
+&lt;meta data-controller="callout" data-callout-text-value="navigator.history.push(new URL(this.element.getAttribute(&amp;quot;src&amp;quot;)))"&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight javascript"&gt;&lt;code&gt;&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nx"&gt;Controller&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;stimulus&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;
+&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nb"&gt;navigator&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;@hotwired/turbo&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;
+
+&lt;span class="k"&gt;export&lt;/span&gt; &lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="kd"&gt;extends&lt;/span&gt; &lt;span class="nx"&gt;Controller&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="nx"&gt;connect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;observer&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;MutationObserver&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nx"&gt;mutationsList&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="nx"&gt;mutationsList&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;forEach&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nx"&gt;mutation&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;mutation&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;type&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;attributes&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;mutation&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;attributeName&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;src&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+          &lt;span class="nb"&gt;navigator&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;history&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;push&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;URL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getAttribute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="s2"&gt;src&lt;/span&gt;&lt;span class="dl"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+      &lt;span class="p"&gt;})&lt;/span&gt;
+    &lt;span class="p"&gt;})&lt;/span&gt;
+
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;observer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;observe&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="na"&gt;attributes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt; &lt;span class="p"&gt;})&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;disconnect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;observer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;disconnect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The controller uses a &lt;a href="https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver"&gt;MutationObserver&lt;/a&gt; on the frame element to observe for changes to the &lt;code&gt;src&lt;/code&gt; attribute. Whenever the &lt;code&gt;src&lt;/code&gt; attribute of the frame changes, the &lt;a href="https://github.com/hotwired/turbo/blob/main/src/core/drive/navigator.ts"&gt;&lt;code&gt;navigator&lt;/code&gt;&lt;/a&gt; from &lt;code&gt;Turbo&lt;/code&gt; is used to push a new state to the browser with the URL from the navigated frame source. Thus, when the frame is navigated, the browser&amp;rsquo;s URL changes.&lt;/p&gt;
+
+&lt;p&gt;I loved how native and easy this was to implement. I think it speaks to how composable and properly abstract the Turbo libraries are becoming. &lt;/p&gt;
+
+&lt;p&gt;Want to modify the history of the browser? Great, just use the raw &lt;code&gt;navigator&lt;/code&gt; object from the library. It wraps nicely around history.pushState.&lt;/p&gt;
+
+&lt;p&gt;Navigating a frame isn&amp;rsquo;t isolated to the event that triggered the navigation, in this case a click on a link, but rather is actually represented by the frame&amp;rsquo;s &lt;code&gt;src&lt;/code&gt; attribute changing. This means that you can observe generically on the frame and say that whenever it&amp;rsquo;s &lt;code&gt;src&lt;/code&gt; changes, it has been navigated, and thus choose to update the history.&lt;/p&gt;
+
+&lt;p&gt;I think it probably makes sense to add a &lt;code&gt;turbo:frame-navigation&lt;/code&gt; &lt;a href="https://turbo.hotwire.dev/reference/events"&gt;event&lt;/a&gt; to make binding to that event easier in the future. But for now, this was simple enough.&lt;/p&gt;
+
+&lt;h2&gt;Fixing Frame Navigation on Files&lt;/h2&gt;
+
+&lt;p&gt;The next issue I encountered was weirder. For some reason, when you were clicking on a file in the file browser, that link click wasn&amp;rsquo;t navigating the frame and would end up navigating the entire application. Not the biggest deal, everything still looked like it worked to the end-user experience. But it was triggering a full page load and I didn&amp;rsquo;t get why a click to &lt;code&gt;turbo_browser/app&lt;/code&gt; would be treated differently than a click to &lt;code&gt;turbo_browser/app/routes.rb&lt;/code&gt;. &lt;/p&gt;
+
+&lt;p&gt;I suspected it had to do with the &lt;code&gt;.rb&lt;/code&gt; and quickly confirmed that by finding the &lt;a href="https://github.com/hotwired/turbo/blob/aae03ada8be4b46899330364d712cc1ae57f2400/src/core/session.ts#L252"&gt;locationIsVisitable&lt;/a&gt; function in the Turbo session core. This function relies on &lt;a href="https://github.com/hotwired/turbo/blob/aae03ada8be4b46899330364d712cc1ae57f2400/src/core/url.ts#L22"&gt;isHTML&lt;/a&gt; which is basically saying that only trigger Turbo navigation events for links where the extension is &lt;code&gt;html&lt;/code&gt;, &lt;code&gt;htm&lt;/code&gt;, or &lt;code&gt;xhtml&lt;/code&gt;. &lt;/p&gt;
+
+&lt;p&gt;This makes sense as generally links with extensions other than those represent files and clicks to those should be allowed to function normally, like triggering the browser to download the file.&lt;/p&gt;
+
+&lt;p&gt;But again, in this use-case, within the file-browser frame, a link click to a URL with an extension should still navigate the frame. So, how could I trigger the frame to navigate on this link click?&lt;/p&gt;
+
+&lt;h3&gt;How to Navigate a Turbo Frame&lt;/h3&gt;
+
+&lt;p&gt;Navigating a turbo frame is as simple as changing the frame&amp;rsquo;s src attribute. Because I already had a Stimulus controller to maintain the browser history on frame navigation, I figured I&amp;rsquo;d just add a &lt;a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/javascript/controllers/file_browser_controller.js#L31-L35"&gt;&lt;code&gt;navigate()&lt;/code&gt;&lt;/a&gt; function and &lt;a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/views/file_browsers/show.html.erb#L20"&gt;trigger that action&lt;/a&gt; on all file path link clicks.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight javascript"&gt;&lt;code&gt;&lt;span class="nx"&gt;navigate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;e&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+  &lt;span class="nx"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;preventDefault&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="nx"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;stopPropagation&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;element&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;src&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;currentTarget&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;href&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre class="highlight html"&gt;&lt;code&gt;&lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"/turbo_browser/&amp;lt;%= node.path %&amp;gt;"&lt;/span&gt; &lt;span class="na"&gt;data-action=&lt;/span&gt;&lt;span class="s"&gt;"click-&amp;gt;file-browser#navigate"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That ensures that all file paths within the file browser will trigger the file browser frame to navigate to the new file path.&lt;/p&gt;
+
+&lt;p&gt;Again, what was so nice is how simple this was to implement. Just add a click event, which could easily be done without Stimulus, find the frame you want to navigate, and change it&amp;rsquo;s source.&lt;/p&gt;
+
+&lt;p&gt;Loving the Hot Way.&lt;/p&gt;
+</content>
+    <media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://railshotway.com/thumbnail.png"/>
+    <media:content xmlns:media="http://search.yahoo.com/mrss/" medium="image" url="https://railshotway.com/thumbnail.png"/>
+  </entry>
+  <entry>
+    <title type="html">A Hot Way History</title>
+    <author>
+      <name>Avi Flombaum</name>
+    </author>
+    <link href="https://railshotway.com/posts/2021-04-10-a-hot-way-history.html" rel="alternate" type="text/html" title="A Hot Way History"/>
+    <published>2021-04-10T19:44:00+00:00</published>
+    <updated>2021-04-10T19:44:00+00:00</updated>
+    <id>https://railshotway.com/posts/2021-04-10-a-hot-way-history.html</id>
+    <content type="html" xml:base="https://railshotway.com/posts/2021-04-10-a-hot-way-history.html">&lt;p&gt;The early world wide web was composed of interlinking documents. The browser as a medium primarily delivered HTML documents that were concerned mostly with text. The web platform was an incredible way to share and consume information in the form of hypertext delivered over HTTP. Functionality on the other hand, things like games, communication applications like email, office software such as spreadsheets, still lived on the PC platform. If you wanted a program, you had to install it onto your PC.&lt;/p&gt;
+
+&lt;p&gt;Web developers tried to break the browser free of the confines of documents and into the world of applications but it didn&amp;rsquo;t work. Interactions were slow, and not just because we didn&amp;rsquo;t have easy access to blazing broadband options, but because every time you wanted to do something in the browser, the entire browser would need to be reloaded with a new HTTP round trip. During this loading time, the interface was locked and you couldn&amp;rsquo;t do anything. That means every link click, every form submission, had to happen synchronously, you could do one thing, but then you had to wait for the browser to make a request and the server to respond. &lt;/p&gt;
+
+&lt;h2&gt;AJAX and the Birth of Web Applications&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Desktop applications have a richness and responsiveness that has seemed out of reach on the Web. The same simplicity that enabled the Web’s rapid proliferation also creates a gap between the experiences we can provide and the experiences users can get from a desktop application. 
+Jesse James Garrett, February 18 2005&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Despite early failures, developers continued trying to push the boundaries of the browser medium. After all, the browser and the web held a lot of promise as an application platform. The web browser application had become ubiquitous with nearly every PC regardless of operating system having an installed browser. The proposition to be able to deliver application functionality through the browser and via HTTP was very compelling. Early attempts at this relied on Macromedia Flash and Java Applets running within the browser through plugins. The Flash and Applet environments allowed for the dynamic and rich interactions demanded by applications. However, for a variety of reasons, those in-browser platforms failed to achieve the adoption of common web browser document experiences. The most popular web destinations remained as HTML document with limited and slow interactivity.&lt;/p&gt;
+
+&lt;p&gt;And then in February 2004, things began changing. Apple added something developed by Microsoft for Internet Explorer, the &lt;code&gt;XMLHttpRequest&lt;/code&gt; object, as a standard component accessible through a Javascript. The &lt;code&gt;XMLHttpRequest&lt;/code&gt; was originally part of Microsoft&amp;rsquo;s MSXML and ActiveX browser extensions. The &lt;code&gt;XMLHttpRequest&lt;/code&gt; object allowed programmers to initiate asynchronous HTTP requests that did not lock the browser interface. Once adopted by Safari and given a Javascript API, the world began to slowly see web sites that functioned more and more like desktop applications. It happened slowly at first, interfaces that included &amp;ldquo;type-ahead&amp;rdquo; autocomplete and suggestions. Pages that could update with new information without any user-driven event like new updates. And all of these cool new user-interfaces and abilities didn&amp;rsquo;t require a plugin download. What was going on? On February 18 2005 the pattern was reversed-engineered, defined, coined, and explained to the world in one of the most important blog posts in web development history, the seminal &lt;a href="https://hotway.s3.us-east-1.amazonaws.com/ajax/Ajax%20-%20A%20New%20Approach%20to%20Web%20Applications.pdf"&gt;Ajax: A New Approach to Web Applications&lt;/a&gt; by Jesse James Garrett.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="https://hotway.s3.us-east-1.amazonaws.com/ajax/ajax-figure-1.jpg" alt="AJAX Figure 1" /&gt;
+&lt;img src="https://hotway.s3.us-east-1.amazonaws.com/ajax/ajax-figure-2.jpg" alt="AJAX Figure 2" /&gt;&lt;/p&gt;
+
+&lt;p&gt;By using the &lt;code&gt;XMLHttpRequest&lt;/code&gt; object, developers could ferry data back and forth from the browser to the server without locking the browser in a full reload. This allowed web developers to deliver rich, dynamic, interfaces and experiences previously locked to the desktop. The web as a true platform was born and &amp;ldquo;web sites&amp;rdquo; evolved into &amp;ldquo;web applications.&amp;rdquo;&lt;/p&gt;
+
+&lt;h2&gt;XML and JSON&lt;/h2&gt;
+
+&lt;p&gt;In order to use AJAX, developers would use Javascript to fire &lt;code&gt;XMLHttpRequest&lt;/code&gt;s to the server on any data update. The server would respond with the data in structured format, generally XML or the newly introduced &lt;a href="https://www.json.org/json-en.html"&gt;JSON&lt;/a&gt;, &amp;ldquo;&lt;a href="https://www.whoishostingthis.com/resources/json-resource/#history"&gt;discovered&lt;/a&gt;&amp;rdquo; by Doug Crockford. The tag-based XML format was considered bloated for HTTP and JSON afforded a lightweight alternative. Since the data needed to be parsed and used to modify the HTML document through the Javascript DOM API anyway, the fact that JSON was natively compatible with Javascript made building new DOM nodes easy. XML quickly lost favor among web developers building AJAX applications. The defacto web application pattern became:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Client-side Javascript fires an XMLHttpRequest.&lt;/li&gt;
+&lt;li&gt;The server responds with JSON.&lt;/li&gt;
+&lt;li&gt;Javascript on the client uses the JSON to modify the page.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The proliferation of this pattern and the complex interactions and interfaces it allowed gave rise to another problem. The amount of client-side javascript being written grew and grew and the Javascript ecosystem was immature. Libraries like jQuery and early frontend frameworks like Backbone.js sought to make the task of writing dynamic web application interfaces easier but it was a mess for a good amount of time.&lt;/p&gt;
+
+&lt;h2&gt;&lt;code&gt;pjax&lt;/code&gt; and HTML&lt;/h2&gt;
+
+&lt;p&gt;While the AJAX pattern mostly relied on sending back raw structured data to the client and using Javascript to handle the page update, there was another pattern being used. In order to make navigating through the various folders and files of a Git repository, GitHub implemented a pattern dubbed &amp;ldquo;PJAX&amp;rdquo;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;pjax works by fetching HTML from your server via ajax and replacing the content of a container element on your page with the loaded HTML. It then updates the current URL in the browser using pushState. This results in faster page navigation for two reasons:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;No page resources (JS, CSS) get re-executed or re-applied;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;If the server is configured for pjax, it can render only partial page contents and thus avoid the potentially costly full layout render.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href="https://github.com/defunkt/jquery-pjax"&gt;jquery-pjax&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Consider first the functionality required to build a file browser interface. Every folder and file in a tree would need at leasts the following:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;A click event to request the data, most likely in JSON, from the server for the next tree of files.&lt;/li&gt;
+&lt;li&gt;Build new HTML for the file tree using the JSON from the server.&lt;/li&gt;
+&lt;li&gt;Replace the stale file tree with the newly constructed HTML.&lt;/li&gt;
+&lt;li&gt;Maintain an accurate URL of the current working path using pushState.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Rather than implement such custom logic for a common pattern of updating a part of a page with new HTML based on data from the server, &lt;a href="https://github.com/defunkt/"&gt;defunkt&lt;/a&gt; chose to abstract this into the pjax pattern. With pjax, instead of requesting only structured JSON data from the server and then having to teach the client what to do with that raw data, the client would simply request HTML from the server and inject it back into the page in the correct location. This approach is simpler for a few reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The backend can remain client-agnostic and send back HTML for the file tree without the need to implement both an initial page load of HTML response and a JSON API response for the client-side AJAX requests.&lt;/li&gt;
+&lt;li&gt;The view logic of how to render the file browser HTML remains singular, defined in the backend and not re-implemented through Javascript templates that convert JSON into HTML. &lt;/li&gt;
+&lt;li&gt;The pattern is re-usable and abstract, you do not need to build specific client-side code for common page updates.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2&gt;The Hot Way&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Hotwire is an alternative approach to building modern web applications without using much JavaScript by sending HTML instead of JSON over the wire. This makes for fast first-load pages, keeps template rendering on the server, and allows for a simpler, more productive development experience in any programming language, without sacrificing any of the speed or responsiveness associated with a traditional single-page application.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href="https://hotwire.dev"&gt;Hotwire.dev&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;pjax&lt;/code&gt; was quickly adopted by the Rails community and eventually became the basis for the &lt;code&gt;turbolinks&lt;/code&gt; pattern. The majority of page loads in a Rails application could make the request using AJAX, get the HTML for the next page asynchronously, and replace the entire &lt;code&gt;body&lt;/code&gt; of the current view with the &lt;code&gt;body&lt;/code&gt; from the AJAX request, while maintaining an accurate URL using pushState. Of course, if pjax was the predecessor pattern for turbolinks, it is at the heart of the Turbo pattern and the Hot Way of building web applications.&lt;/p&gt;
+</content>
+    <media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://railshotway.com/thumbnail.png"/>
+    <media:content xmlns:media="http://search.yahoo.com/mrss/" medium="image" url="https://railshotway.com/thumbnail.png"/>
+  </entry>
+</feed>

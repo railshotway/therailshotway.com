@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <link rel="icon" href="/favicon.ico">
+
+  <title>Rails is the Hot Way</title>
+
+  <link rel="canonical" href="">
+
+  <link href="/assets/css/poole.css" rel="stylesheet" />
+  <link href="/assets/css/syntax.css" rel="stylesheet" />
+  <link href="/assets/css/lanyon.css" rel="stylesheet" />
+  <link href="/assets/css/styles.css" rel="stylesheet" />
+  <link href="/assets/css/callout.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="">
+  <link rel="shortcut icon" href="">
+
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="">
+  <script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+  <script src="/assets/js/callout.js"></script>
+</head>
+
+<body>
+  <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+    styles, `#sidebar-checkbox` for behavior. -->
+  <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+  <!-- Toggleable sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-item">
+      <p>A blog about using Ruby on Rails and Hotwire to build amazing cross-platform applications.</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="#">Home</a>
+
+
+
+      <!-- <a class="sidebar-nav-item" href="#">STOP IT</a>
+      <span class="sidebar-nav-item">Currently Awesome</span> -->
+    </nav>
+
+    <div class="sidebar-item">
+      <p>
+        Written by <a href="https://josefarias.mx/">Jose Farias</a> and <a href="https://aviflombaum.com">Avi Flombaum</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <small>🔥</small>
+          <a href="/" title="Home">The Rails Hot Way</a>
+          <small>🔥</small>
+        </h3>
+      </div>
+    </div>
+
+    <!-- main body -->
+    <div class="container content">
+        <article>
+    <div class="post__header">
+      <img src="/assets/images/avi.jpeg" class="author__avatar" width="60" height="60" alt="Avi" />
+
+      <div class="post__details">
+        <span>Avi Flombaum</span>
+        <span>&nbsp;-&nbsp;</span>
+        <span>April 17, 2021</span>
+      </div>
+
+      <h1 class="post__title">File Browser with Turbo Frames</h1>
+    </div>
+
+    <br />
+
+    <p>I thought it would be interesting to implement the GitHub file browser using turbo frames instead of turbolinks or pjax. It turns out that in trying to implement this interface patter, I discovered some nuances to turbo frames that I thought would be worth sharing.</p>
+
+<p>The code is packaged as a rails app and you can find the relevant example branch <a href="https://github.com/railshotway/file-browser/tree/turbo-singular-file-browser-frame">here</a>. I&rsquo;m going to focus on the Turbo and Hotwire aspects of this pattern and ignore the Rails backend.</p>
+
+<p><img src="https://p194.p3.n0.cdn.getcloudapp.com/items/xQub7J1y/87dacd6b-d814-4684-95f6-cef3d1e524e6.gif?v=6ddd7ee103e2464502496f5023c6341f" alt="File Browser" /></p>
+
+<p>Each link click within the file browser is navigating the <code>&lt;turbo-frame id=&quot;file-browser&quot;&gt;</code> located within the main <a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/views/file_browsers/show.html.erb"><code>show.html.erb</code></a> view. </p>
+
+<p>The relevant parts of the frame code are:</p>
+<div class="highlight"><pre class="highlight html"><code><span class="nt">&lt;turbo-frame</span> <span class="na">id=</span><span class="s">"file_browser"</span> <span class="na">data-controller=</span><span class="s">"file-browser"</span><span class="nt">&gt;</span> 
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"row"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"offset-2 col-8 border-bottom border-start border-end rounded-bottom"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;</span><span class="err">%</span> <span class="err">@</span><span class="na">current_node.children.each</span> <span class="na">do</span> <span class="err">|</span><span class="na">node</span><span class="err">|</span> <span class="err">%</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"row border-top"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/turbo_browser/&lt;%= node.path %&gt;"</span> <span class="na">data-action=</span><span class="s">"click-&gt;file-browser#navigate"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-12 d-flex align-items-center px-3 py-2"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"me-3 d-flex align-items-center"</span><span class="nt">&gt;</span>
+              <span class="nt">&lt;</span><span class="err">%=</span> <span class="na">file_browser_icon</span><span class="err">(</span><span class="na">node</span><span class="err">)</span> <span class="err">%</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;/div&gt;</span>
+            <span class="nt">&lt;span&gt;&lt;</span><span class="err">%=</span> <span class="na">node.name</span> <span class="err">%</span><span class="nt">&gt;&lt;/span&gt;</span>
+          <span class="nt">&lt;/div&gt;</span>
+        <span class="nt">&lt;/a&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+      <span class="nt">&lt;</span><span class="err">%</span> <span class="na">end</span> <span class="err">%</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/turbo-frame&gt;</span>
+</code></pre></div>
+<p>Each click within the frame will trigger the frame to navigate by updating the frame source. There&rsquo;s some Stimulus interactions wired to the HTML but the truth is, when I first began implementing this example, I didn&rsquo;t think I was going to need to do anything custom.</p>
+
+<h2>How It Should Have Worked</h2>
+
+<p>Because the links are within a turbo-frame, they should have natively triggered the frame to navigate. I wouldn&rsquo;t need to change anything about the Rails backend, sending JSON about the file system back instead of HTML, or teaching the Rails controller how to respond to a full page load vs a frame navigation. All of that is part of the Rails Turbo. However, I encountered two subtleties to Turbo and turbo frames.</p>
+
+<p>The first is that when you are navigating a turbo frame, the browser&rsquo;s URL wasn&rsquo;t changing or the history was not being informed about a new state. This is a current discussion within Turbo, with the most relevant discussion centering around this <a href="https://github.com/hotwired/turbo/pull/167">PR</a>.</p>
+
+<p>The second is that when you were clicking on a link that ended in a file extension, like <code>routes.rb</code> in the above gif, it was triggering a full page load and not a frame navigation. That is to say, for some reason, links within the file system tree that were folders were working fine, links that were to files were not navigating the frame.</p>
+
+<h2>Maintaining Browser History on Frame Navigation</h2>
+
+<p>The first issue is a philosophical one. Should navigating a frame be considered a navigational event that represents a change of state? I think by default, no. The point of turbo frames is that they represent interface components, the vast majority of which would not really represent a navigation state change of the application. However, I think it would be a worthwhile addition to the library to allow a frame to maintain history upon navigation. </p>
+
+<p>In the file browser example, you can imagine this application having more interface elements (like the real GitHub UI does) and you might want to have those interface elements be independent frames. </p>
+
+<h3>turbolinks vs turbo-frames</h3>
+
+<p>When you&rsquo;re navigating within the file browser interface element, you still would want to treat that as a frame navigation and not drop down to a turbolink. The reason why is because as a turbolink navigational event, the link click would still trigger an AJAX request, but the Rails backend would send back an entire page response and turbolinks would re-render the entire <code>&lt;body&gt;</code> of the page. In a complex interface, your forcing the browser to do a lot of work re-rendering the entire interface when really only one component was updated.</p>
+
+<p>By making the file browser interface component a turbo frame, when that frame is navigated, the Rails backend is only sending back the rendered action&rsquo;s view. There response does not include the entire <code>&lt;html&gt;</code> of the page but rather just the individual view&rsquo;s html.</p>
+
+<p><img src="https://p194.p3.n0.cdn.getcloudapp.com/items/DOuDqLX5/eb430f74-e1c3-414c-b733-b672eb0fd129.jpg?v=97e15f48a8b86acb989b90de9b5655a1" alt="View Response" /></p>
+
+<p>Rails knew to only send back the view because the request headers referenced a turbo-frame with a value of file-browser. The ajax request knew to include those request headers because the link click originated from within a turbo-frame element.</p>
+
+<p><img src="https://p194.p3.n0.cdn.getcloudapp.com/items/llu5NeRv/f231bd85-b4c2-4466-8103-e8732180613e.jpg?v=d85a1fa1ee742d28878482d1c11da862" alt="Frame Request Headers" /></p>
+
+<p>Navigating within the file tree is easier on the backend and on the frontend. The backend doesn&rsquo;t have to render the <code>application.html.erb</code> which is easier on your server especially if there is actually a lot to rendering your application interface. And instead of replacing the entire <code>&lt;body&gt;</code> and rebinding the entire interface of your application, the browser only needs to redraw the targeted frame.</p>
+
+<h3>How to Maintain Browser History on Frame Navigation</h3>
+
+<p>In this use-case, you would very much want to be able to maintain the browser history upon the navigation of the main file-browser frame. While you are using turbo-frames to get the benefits mentioned above, you still want the frame navigation to be bookmarkable and to really represent a state change in the application and not just the frame.</p>
+
+<p>Until the PR addressing this concern is resolved, I found <a href="https://gist.github.com/Intrepidd/ac68cb7dfd17d422374807efb6bf2f42">two</a> <a href="https://gist.github.com/Intrepidd/bb1ffc5944a5c1ec3a9f5582753c4b67">nice</a> examples of how to do this myself. I ended up implementing a combination of the two in a stimulus <a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/javascript/controllers/file_browser_controller.js">file_browser_controller.js</a></p>
+
+<p><meta data-controller="callout" data-callout-text-value="import { navigator } from &quot;@hotwired/turbo&quot;">
+<meta data-controller="callout" data-callout-text-value="navigator.history.push(new URL(this.element.getAttribute(&quot;src&quot;)))"></p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">Controller</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">stimulus</span><span class="dl">"</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nb">navigator</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">@hotwired/turbo</span><span class="dl">"</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">class</span> <span class="kd">extends</span> <span class="nx">Controller</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">observer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MutationObserver</span><span class="p">((</span><span class="nx">mutationsList</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">mutationsList</span><span class="p">.</span><span class="nx">forEach</span><span class="p">((</span><span class="nx">mutation</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">mutation</span><span class="p">.</span><span class="nx">type</span> <span class="o">===</span> <span class="dl">"</span><span class="s2">attributes</span><span class="dl">"</span> <span class="o">&amp;&amp;</span> <span class="nx">mutation</span><span class="p">.</span><span class="nx">attributeName</span> <span class="o">===</span> <span class="dl">"</span><span class="s2">src</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nb">navigator</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="k">new</span> <span class="nx">URL</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="dl">"</span><span class="s2">src</span><span class="dl">"</span><span class="p">)))</span>
+        <span class="p">}</span>
+      <span class="p">})</span>
+    <span class="p">})</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">observer</span><span class="p">.</span><span class="nx">observe</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="p">{</span> <span class="na">attributes</span><span class="p">:</span> <span class="kc">true</span> <span class="p">})</span>
+  <span class="p">}</span>
+
+  <span class="nx">disconnect</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">observer</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">()</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The controller uses a <a href="https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver">MutationObserver</a> on the frame element to observe for changes to the <code>src</code> attribute. Whenever the <code>src</code> attribute of the frame changes, the <a href="https://github.com/hotwired/turbo/blob/main/src/core/drive/navigator.ts"><code>navigator</code></a> from <code>Turbo</code> is used to push a new state to the browser with the URL from the navigated frame source. Thus, when the frame is navigated, the browser&rsquo;s URL changes.</p>
+
+<p>I loved how native and easy this was to implement. I think it speaks to how composable and properly abstract the Turbo libraries are becoming. </p>
+
+<p>Want to modify the history of the browser? Great, just use the raw <code>navigator</code> object from the library. It wraps nicely around history.pushState.</p>
+
+<p>Navigating a frame isn&rsquo;t isolated to the event that triggered the navigation, in this case a click on a link, but rather is actually represented by the frame&rsquo;s <code>src</code> attribute changing. This means that you can observe generically on the frame and say that whenever it&rsquo;s <code>src</code> changes, it has been navigated, and thus choose to update the history.</p>
+
+<p>I think it probably makes sense to add a <code>turbo:frame-navigation</code> <a href="https://turbo.hotwire.dev/reference/events">event</a> to make binding to that event easier in the future. But for now, this was simple enough.</p>
+
+<h2>Fixing Frame Navigation on Files</h2>
+
+<p>The next issue I encountered was weirder. For some reason, when you were clicking on a file in the file browser, that link click wasn&rsquo;t navigating the frame and would end up navigating the entire application. Not the biggest deal, everything still looked like it worked to the end-user experience. But it was triggering a full page load and I didn&rsquo;t get why a click to <code>turbo_browser/app</code> would be treated differently than a click to <code>turbo_browser/app/routes.rb</code>. </p>
+
+<p>I suspected it had to do with the <code>.rb</code> and quickly confirmed that by finding the <a href="https://github.com/hotwired/turbo/blob/aae03ada8be4b46899330364d712cc1ae57f2400/src/core/session.ts#L252">locationIsVisitable</a> function in the Turbo session core. This function relies on <a href="https://github.com/hotwired/turbo/blob/aae03ada8be4b46899330364d712cc1ae57f2400/src/core/url.ts#L22">isHTML</a> which is basically saying that only trigger Turbo navigation events for links where the extension is <code>html</code>, <code>htm</code>, or <code>xhtml</code>. </p>
+
+<p>This makes sense as generally links with extensions other than those represent files and clicks to those should be allowed to function normally, like triggering the browser to download the file.</p>
+
+<p>But again, in this use-case, within the file-browser frame, a link click to a URL with an extension should still navigate the frame. So, how could I trigger the frame to navigate on this link click?</p>
+
+<h3>How to Navigate a Turbo Frame</h3>
+
+<p>Navigating a turbo frame is as simple as changing the frame&rsquo;s src attribute. Because I already had a Stimulus controller to maintain the browser history on frame navigation, I figured I&rsquo;d just add a <a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/javascript/controllers/file_browser_controller.js#L31-L35"><code>navigate()</code></a> function and <a href="https://github.com/railshotway/file-browser/blob/turbo-singular-file-browser-frame/app/views/file_browsers/show.html.erb#L20">trigger that action</a> on all file path link clicks.</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="nx">navigate</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">()</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">src</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">currentTarget</span><span class="p">.</span><span class="nx">href</span>
+<span class="p">}</span>
+</code></pre></div><div class="highlight"><pre class="highlight html"><code><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/turbo_browser/&lt;%= node.path %&gt;"</span> <span class="na">data-action=</span><span class="s">"click-&gt;file-browser#navigate"</span><span class="nt">&gt;</span>
+</code></pre></div>
+<p>That ensures that all file paths within the file browser will trigger the file browser frame to navigate to the new file path.</p>
+
+<p>Again, what was so nice is how simple this was to implement. Just add a click event, which could easily be done without Stimulus, find the frame you want to navigate, and change it&rsquo;s source.</p>
+
+<p>Loving the Hot Way.</p>
+
+
+    <div class="post__footer">
+    </div>
+  </article>
+
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+  <script src="/assets/js/script.js"></script>
+</body>
+</html>

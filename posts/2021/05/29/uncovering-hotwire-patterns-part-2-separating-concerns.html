@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <link rel="icon" href="/favicon.ico">
+
+  <title>Rails is the Hot Way</title>
+
+  <link rel="canonical" href="">
+
+  <link href="/assets/css/poole.css" rel="stylesheet" />
+  <link href="/assets/css/syntax.css" rel="stylesheet" />
+  <link href="/assets/css/lanyon.css" rel="stylesheet" />
+  <link href="/assets/css/styles.css" rel="stylesheet" />
+  <link href="/assets/css/callout.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="">
+  <link rel="shortcut icon" href="">
+
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="">
+  <script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+  <script src="/assets/js/callout.js"></script>
+</head>
+
+<body>
+  <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+    styles, `#sidebar-checkbox` for behavior. -->
+  <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+  <!-- Toggleable sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-item">
+      <p>A blog about using Ruby on Rails and Hotwire to build amazing cross-platform applications.</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="#">Home</a>
+
+
+
+      <!-- <a class="sidebar-nav-item" href="#">STOP IT</a>
+      <span class="sidebar-nav-item">Currently Awesome</span> -->
+    </nav>
+
+    <div class="sidebar-item">
+      <p>
+        Written by <a href="https://josefarias.mx/">Jose Farias</a> and <a href="https://aviflombaum.com">Avi Flombaum</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <small>🔥</small>
+          <a href="/" title="Home">The Rails Hot Way</a>
+          <small>🔥</small>
+        </h3>
+      </div>
+    </div>
+
+    <!-- main body -->
+    <div class="container content">
+        <article>
+    <div class="post__header">
+      <img src="/assets/images/jose.png" class="author__avatar" width="60" height="60" alt="Jose" />
+
+      <div class="post__details">
+        <span>Jose Farias</span>
+        <span>&nbsp;-&nbsp;</span>
+        <span>May 29, 2021</span>
+      </div>
+
+      <h1 class="post__title">Uncovering Hotwire Patterns Part 2: Separating Concerns</h1>
+    </div>
+
+    <br />
+
+    <p><em>Hotwire is a new technology built on top of mature web principles. Its &ldquo;oldness&rdquo; makes it reliable. And its &ldquo;newness&rdquo; makes it applicable to modern demands.</em></p>
+
+<p><em>This is a series about uncovering patterns for Hotwire by taking a look at how successful companies are using it in production.</em></p>
+
+<hr>
+
+<p><a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">Last time</a>,
+we talked about one of the benefits of separating concerns by leveraging Turbo Frames.
+Today, I&rsquo;m writing about the actual separation of concerns.</p>
+
+<p>This is going to be a post about a thought pattern, rather than a code pattern.
+And how following web standards allows for quick and easy implementations of
+the subject matter.</p>
+
+<h2>Context</h2>
+
+<p>HTML can get very messy, very quick. That&rsquo;s one of the reasons abstractions such as
+<a href="https://haml.info/" target="_blank">Haml</a>,
+<a href="https://pugjs.org/" target="_blank">Pug</a>, and
+<a href="http://slim-lang.com/" target="_blank">Slim</a> emerge.
+But HTML can actually be beautiful and easy to read if we keep our
+markup <strong>semantic</strong> and <strong>short</strong>.</p>
+
+<p>Rails allows for that to some extent through modest use of layouts and partials.
+However, that approach can result in mixing in too many concerns.
+We can take things further by leveraging Hotwire.</p>
+
+<p>We usually picture database-backed models when we talk about REST resources.
+But let&rsquo;s consider the posibility of our UI components also being resources.
+This would allow us to separate complex UI elements into their own concerns within
+our code and use Turbo Frames to load each element where appropriate. This is preferable
+to rendering complex markup inline for a single HTTP request (typically through the use of partials),
+as it keeps our code cleaner.</p>
+
+<p>Today&rsquo;s pattern takes advantage of things simply falling into place when web standards
+are followed. In this case, following REST guidelines makes it easy to reason
+about our application. Which, in turn, makes it easy to connect and maintain
+multiple components.</p>
+
+<h2>An Implementation</h2>
+
+<p>In <a href="https://hey.com" target="_blank">HEY</a>, menus and trays have their own
+RESTful URLs. This is what it looks like if we navigate to, say, <code>https://app.hey.com/my/navigation</code>:</p>
+
+<p><img class="img--centered" src="https://www.dropbox.com/s/0ehjy7h3q3n7jm0/my-navigation.png?raw=1" alt="Image showing the HEY menu navigation by itself, rendered across the full-width of the screen" /></p>
+
+<p>We usually only see the HEY menu confined to a small box positioned just below the navbar.
+But we can absolutely navigate to this full-width version of the menu, because it&rsquo;s a resource.</p>
+
+<p>Here are some other routes we typically only encounter within Turbo Frames:</p>
+
+<ul>
+<li><code>/me</code></li>
+<li><code>/set_aside/tray</code></li>
+<li><code>/reply_later/tray</code></li>
+<li><code>/postings/&lt;posting_id_just_the_number)&gt;/note/edit</code> (Posting ids can be found by inspecting the row of one of your emails, look for <code>&lt;article&gt;</code> elements)</li>
+</ul>
+
+<p>Try navigating to them and see what they look like for you!</p>
+
+<p>We know from <a href="https://www.jorgemanrubia.com/" target="_blank">Jorge Manrubia</a>&rsquo;s talk
+about <a href="https://youtu.be/GdXOXncUB9M?t=2499" target="_blank">fighting the merchants of complexity</a>
+that Basecamp does appear to think of these menus as REST resources. For example,
+the <code>Me</code> menu has its own controller that looks something like:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">MeController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="c1"># Code goes here</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>That is to say, <code>Me</code> is something that can be instantiated and shown to users.
+And what does a <code>Me</code> look like? Well, it looks like a <code>Me</code> <em>menu</em>, of course!</p>
+
+<h2>The Pattern</h2>
+
+<p>Again, this is more of a thought pattern. An invitation of sorts to think about
+our application as a combination of REST resources. And we&rsquo;re not only talking
+about our database-connected models. We&rsquo;re talking about our UI components as well.</p>
+
+<p>By doing this, we&rsquo;re able to keep the surface area of our domain components small.</p>
+
+<p>In <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="blank">last post</a>&rsquo;s example,
+we replicated the HEY menu in a fake email service called <em><strong>YO!</strong></em>
+(code available at <a href="https://github.com/JoseFarias/yo-email" target="_blank">this GitHub repo</a>).
+Here&rsquo;s what that looked like:</p>
+
+<p><img class="img--centered" src="https://www.dropbox.com/s/3nedyzkipdlks1t/yo-menu-demo.gif?raw=1" alt="Gif showing our replica of the HEY menu" /></p>
+
+<p>This menu contains a search form that can be kind of complex. It has its own rules
+of engagement. It fetches records and displays them in an entirely different frame
+(this is a pattern we&rsquo;ll talk about in a future post). It&rsquo;s <em>its own thing</em>. And,
+as such, it shouldn&rsquo;t be bundled with the rest of the navigation. Not even within partials.</p>
+
+<p>Components like this one should have their own place to live.
+They deserve their own controller. Or at least their own action within an existing controller.
+With Hotwire, we can give them that place to live and load them asynchronously
+<a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank">as needed</a>.</p>
+
+<p><em>Contextual side-note: This is not a new concept. The Rails community has been doing this for a while. But Hotwire makes it super easy to implement.</em></p>
+
+<p>One last thing to remember is the importance of flexibility. It doesn&rsquo;t always make
+sense to force a component into a REST resource. We must make sensible choices that
+result in our application being easier to reason about. Let&rsquo;s not follow guidelines blindly.</p>
+
+<h2>Wrap Up</h2>
+
+<p>Thinking of our application (UI included) as a combination of REST resources
+makes it easy to reason about, easy to navigate, and easy to maintain.</p>
+
+<p>Hotwire makes it a breeze to connect different parts of our application when
+architecting our domain in this way.</p>
+
+<p>I&rsquo;m going to keep extracting patterns from apps like HEY in upcoming posts.
+So follow me on <a href="https://twitter.com/fariastweets" target="_blank">Twitter</a> to stay tuned!</p>
+
+<h2>Comments</h2>
+
+<p>We&rsquo;re only just setting up this blog and don&rsquo;t have plans for a comments section yet.
+But feel free to reach out on <a href="https://twitter.com/fariastweets" target="_blank">Twitter</a>.</p>
+
+
+    <div class="post__footer">
+        <h3>Entries in this series</h3>
+        <ul>
+          <li>
+            <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-1-loading-frames-on-demand.html" target="_blank">Part 1: Loading Frames On-Demand</a>
+          </li>
+          <li>
+            <a href="/posts/2021/05/29/uncovering-hotwire-patterns-part-2-separating-concerns.html" target="_blank">Part 2: Separating Concerns</a>
+          </li>
+        </ul>
+    </div>
+  </article>
+
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+  <script src="/assets/js/script.js"></script>
+</body>
+</html>
